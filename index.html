@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#10231b" />
   <title>Trash Grab Express | Curb to Clean, Fast</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -156,6 +157,9 @@
         <div class="booking-points"><span>✓ No payment required</span><span>✓ Takes about 60 seconds</span><span>✓ No long-term contract</span></div>
       </div>
       <form class="booking-form reveal" id="booking-form">
+        <div aria-hidden="true" style="position:absolute;left:-10000px">
+          <label>Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
         <div class="form-grid">
           <label>First name<input required name="firstName" autocomplete="given-name" placeholder="Your first name"></label>
           <label>Last name<input required name="lastName" autocomplete="family-name" placeholder="Your last name"></label>
@@ -167,7 +171,8 @@
           <label class="full-field">Anything we should know?<textarea name="notes" maxlength="300" placeholder="Gate details, bin location, or schedule notes"></textarea></label>
         </div>
         <label class="consent"><input required type="checkbox"><span>I confirm these details are accurate and understand this is a service request, not a confirmed booking.</span></label>
-        <button class="button button-primary full" type="submit">Create my service request <span>→</span></button>
+        <button class="button button-primary full" type="submit" id="booking-submit">Send my service request <span>→</span></button>
+        <p id="booking-error" role="alert" hidden style="color:#a2261d;margin:.8rem 0 0"></p>
       </form>
     </section>
 
@@ -194,7 +199,7 @@
     <span class="success-icon">✓</span>
     <p class="eyebrow"><span></span> Request created</p>
     <h2>You’re one step closer to easier trash day.</h2>
-    <p>Save this summary for your records. Your request has not been sent to a server.</p>
+    <p>Your request was securely saved. Keep this summary for your records while our team reviews the details.</p>
     <pre id="request-summary"></pre>
     <button class="button button-primary full" id="copy-summary" type="button">Copy request summary</button>
   </dialog>
