@@ -1,0 +1,7 @@
+[build]
+  # This repository is a plain HTML/CSS/JavaScript site. No npm build is needed.
+  command = "mkdir -p dist && cp index.html styles.css script.js _headers dist/"
+  publish = "dist"
+
+[build.processing]
+  skip_processing = false
