@@ -118,7 +118,7 @@ form.addEventListener('submit', async event => {
     .insert(request);
 
   if (error) {
-    console.error('Unable to save service request');
+    console.error('Unable to save service request', { code: error.code, message: error.message });
     errorMessage.textContent = 'We could not save your request right now. Please check the details and try again.';
     errorMessage.hidden = false;
     submitButton.disabled = false;
