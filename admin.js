@@ -55,13 +55,17 @@ function makeStatus(status) {
   return badge;
 }
 
-async function userIsAdmin() {
-  const { data, error } = await client.rpc('trash_grab_is_admin');
-  return !error && data === true;
+async function userIsAdmin(userId) {
+  const { data, error } = await client
+    .from('trash_grab_admins')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  return !error && Boolean(data);
 }
 
 async function authorizeSession(session) {
-  if (!session || !(await userIsAdmin())) {
+  if (!session || !(await userIsAdmin(session.user.id))) {
     if (session) await client.auth.signOut();
     loginView.hidden = false;
     dashboardView.hidden = true;
