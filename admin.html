@@ -45,6 +45,8 @@
           <button data-status="scheduled"><span>◷</span> Scheduled</button>
           <button data-status="active"><span>↗</span> Active</button>
           <button data-status="completed"><span>✓</span> Completed</button>
+          <button type="button" id="route-nav-button"><span>⌖</span> Route planner</button>
+          <button type="button" id="profile-nav-button"><span>⌂</span> Home base</button>
         </nav>
         <div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div><strong id="user-email">Admin</strong><small>Administrator</small></div></div>
         <button id="logout-button" class="logout">Sign out</button>
@@ -53,7 +55,10 @@
       <div class="workspace">
         <header class="workspace-header">
           <div><p class="eyebrow">Operations dashboard</p><h1>Service requests</h1><p>Review leads, schedule pickups, and keep customer notes organized.</p></div>
-          <button id="refresh-button" class="secondary-button">↻ Refresh</button>
+          <div class="header-actions">
+            <button id="profile-button" class="secondary-button">⌂ Home base</button>
+            <button id="refresh-button" class="secondary-button">↻ Refresh</button>
+          </div>
         </header>
 
         <div class="stats">
@@ -62,6 +67,25 @@
           <article><span>Active</span><strong id="stat-active">0</strong><small>Recurring customers</small></article>
           <article><span>Total requests</span><strong id="stat-total">0</strong><small>All time</small></article>
         </div>
+
+        <section class="route-panel" id="route-planner">
+          <div class="route-heading">
+            <div><p class="eyebrow">Google Maps route</p><h2>Today's pickup run</h2><p>Choose a date, include the stops you need, then launch directions from your saved home base.</p></div>
+            <label>Pickup date<input type="date" id="route-date"></label>
+          </div>
+          <div class="route-body">
+            <div class="home-base-card" id="home-base-card">
+              <span>⌂</span><div><small>Starting from</small><strong id="home-base-summary">Home base not set</strong></div>
+              <button type="button" id="route-profile-button">Set home base</button>
+            </div>
+            <ol id="route-stops" class="route-stops"></ol>
+            <div class="route-empty" id="route-empty">No scheduled or active pickups match this date.</div>
+            <div class="route-actions">
+              <span id="route-count">0 stops selected</span>
+              <button type="button" id="open-maps-button" disabled>Open route in Google Maps ↗</button>
+            </div>
+          </div>
+        </section>
 
         <section class="request-panel">
           <div class="panel-toolbar">
@@ -89,10 +113,32 @@
     </div>
     <section class="customer-notes"><h3>Customer notes</h3><p id="detail-notes">No notes provided.</p></section>
     <form id="request-update-form" class="update-form">
+      <label>Next pickup date<input type="date" name="pickupDate" required></label>
       <label>Status<select name="status"><option value="new">New</option><option value="contacted">Contacted</option><option value="scheduled">Scheduled</option><option value="active">Active</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
       <label>Private admin notes<textarea name="adminNotes" maxlength="2000" placeholder="Follow-up details, access notes, scheduling information…"></textarea></label>
       <p id="update-error" class="form-error" role="alert" hidden></p>
-      <button type="submit" id="save-request-button">Save changes <span>→</span></button>
+      <div class="dialog-actions">
+        <button type="button" id="delete-request-button" class="danger-button">Delete pickup</button>
+        <button type="submit" id="save-request-button">Save changes <span>→</span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="profile-dialog" class="profile-dialog">
+    <form method="dialog"><button class="close-button" aria-label="Close">×</button></form>
+    <p class="eyebrow">Route settings</p>
+    <h2>Set your home base</h2>
+    <p>This private address is used as the starting point—and optionally the ending point—for Google Maps pickup routes.</p>
+    <form id="profile-form" class="profile-form">
+      <label>Full name<input name="fullName" required maxlength="120" autocomplete="name"></label>
+      <label>Phone<input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
+      <label class="wide">Home address<input name="homeAddress" required maxlength="240" autocomplete="street-address"></label>
+      <label>City<input name="city" required maxlength="100" autocomplete="address-level2"></label>
+      <label>State<input name="state" required maxlength="40" autocomplete="address-level1"></label>
+      <label>ZIP code<input name="zip" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric" autocomplete="postal-code"></label>
+      <label class="checkbox-row wide"><input name="returnHome" type="checkbox" checked> Return to home base after the last pickup</label>
+      <p id="profile-error" class="form-error wide" role="alert" hidden></p>
+      <button type="submit" id="save-profile-button" class="wide">Save home base</button>
     </form>
   </dialog>
 </body>
