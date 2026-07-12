@@ -201,9 +201,9 @@ function renderRequests() {
   });
 }
 
-document.querySelectorAll('.sidebar nav button').forEach(button => {
+document.querySelectorAll('.sidebar nav button[data-status]').forEach(button => {
   button.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar nav button').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.sidebar nav button[data-status]').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
     activeStatus = button.dataset.status;
     renderRequests();
@@ -506,7 +506,9 @@ routeDate.addEventListener('change', () => {
 document.querySelector('#route-nav-button').addEventListener('click', () => {
   document.querySelector('#route-planner').scrollIntoView({ behavior: 'smooth' });
 });
-routeDate.value = new Date().toISOString().split('T')[0];
+const localToday = new Date();
+localToday.setMinutes(localToday.getMinutes() - localToday.getTimezoneOffset());
+routeDate.value = localToday.toISOString().split('T')[0];
 
 (async () => {
   const { data } = await client.auth.getSession();
