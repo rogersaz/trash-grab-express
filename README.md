@@ -1,20 +1,22 @@
 # Trash Grab Express
 
-A responsive static service website for Trash Grab Express.
+A responsive service website with a Supabase-backed customer-request system and protected admin dashboard.
 
 ## Included
 
 - responsive landing page and mobile navigation
 - instant service-price estimator
-- service-request form with validation
-- copyable booking summary
+- customer requests saved to Supabase
+- protected admin login and request-management dashboard
+- status filters, private admin notes, and request updates
+- Row Level Security protecting customer data
 - accessible FAQ accordion and motion preferences
 - baseline browser security headers
 
-## Run locally
+## Admin
 
-Open `index.html` in a browser or serve the directory with any static web server.
+The dashboard is available at `/admin.html`. A Supabase Auth user must also be explicitly added to `public.trash_grab_admins`; having an account alone does not grant access.
 
-## Important
+## Security model
 
-The booking form does not transmit or store customer information. It creates a local summary the visitor can copy. Connect the form to an approved backend before advertising requests as submitted or confirmed.
+Anonymous visitors can insert service requests but cannot read any request rows. Only active allowlisted admins can read or update requests. Never place a Supabase service-role or secret key in this repository.
