@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#10231b">
+  <title>Admin | Trash Grab Express</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js" defer></script>
+  <script src="admin.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="login-shell" id="login-view">
+      <div class="login-brand">
+        <a href="index.html" class="brand"><span class="brand-mark">⚡</span><span>Trash Grab <strong>Express</strong></span></a>
+        <div>
+          <p class="eyebrow">Operations portal</p>
+          <h1>Keep every<br>pickup <em>moving.</em></h1>
+          <p>Private access for approved Trash Grab Express administrators.</p>
+        </div>
+        <small>Customer information is protected by database-level access controls.</small>
+      </div>
+      <form id="login-form" class="login-card">
+        <div class="shield">✓</div>
+        <p class="eyebrow">Authorized access</p>
+        <h2>Welcome back</h2>
+        <p>Sign in with your approved administrator account.</p>
+        <label>Email address<input type="email" name="email" autocomplete="username" required placeholder="admin@example.com"></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" minlength="8" required placeholder="••••••••"></label>
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <button type="submit" id="login-button">Sign in securely <span>→</span></button>
+        <a href="index.html" class="back-link">← Return to website</a>
+      </form>
+    </section>
+
+    <section class="dashboard" id="dashboard-view" hidden>
+      <aside class="sidebar">
+        <a href="index.html" class="brand"><span class="brand-mark">⚡</span><span>Trash Grab <strong>Express</strong></span></a>
+        <nav>
+          <button class="active" data-status="all"><span>▦</span> All requests</button>
+          <button data-status="new"><span>●</span> New</button>
+          <button data-status="contacted"><span>◌</span> Contacted</button>
+          <button data-status="scheduled"><span>◷</span> Scheduled</button>
+          <button data-status="active"><span>↗</span> Active</button>
+          <button data-status="completed"><span>✓</span> Completed</button>
+        </nav>
+        <div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div><strong id="user-email">Admin</strong><small>Administrator</small></div></div>
+        <button id="logout-button" class="logout">Sign out</button>
+      </aside>
+
+      <div class="workspace">
+        <header class="workspace-header">
+          <div><p class="eyebrow">Operations dashboard</p><h1>Service requests</h1><p>Review leads, schedule pickups, and keep customer notes organized.</p></div>
+          <button id="refresh-button" class="secondary-button">↻ Refresh</button>
+        </header>
+
+        <div class="stats">
+          <article><span>New leads</span><strong id="stat-new">0</strong><small>Waiting for contact</small></article>
+          <article><span>Scheduled</span><strong id="stat-scheduled">0</strong><small>Ready for service</small></article>
+          <article><span>Active</span><strong id="stat-active">0</strong><small>Recurring customers</small></article>
+          <article><span>Total requests</span><strong id="stat-total">0</strong><small>All time</small></article>
+        </div>
+
+        <section class="request-panel">
+          <div class="panel-toolbar">
+            <div><h2 id="list-heading">All requests</h2><span id="result-count">0 records</span></div>
+            <label class="search"><span>⌕</span><input id="search-input" type="search" placeholder="Search name, email, ZIP…"></label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Customer</th><th>Plan</th><th>Start date</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+              <tbody id="request-rows"></tbody>
+            </table>
+            <div class="empty-state" id="empty-state" hidden><span>✓</span><h3>Nothing waiting here</h3><p>Requests matching this view will appear automatically.</p></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="request-dialog">
+    <form method="dialog"><button class="close-button" aria-label="Close">×</button></form>
+    <div class="dialog-heading"><p class="eyebrow">Request details</p><h2 id="detail-name">Customer</h2><span id="detail-status" class="status-pill">New</span></div>
+    <div class="detail-grid">
+      <section><h3>Contact</h3><dl><div><dt>Email</dt><dd><a id="detail-email"></a></dd></div><div><dt>Phone</dt><dd><a id="detail-phone"></a></dd></div><div><dt>Address</dt><dd id="detail-address"></dd></div></dl></section>
+      <section><h3>Service</h3><dl><div><dt>Plan</dt><dd id="detail-plan"></dd></div><div><dt>Bins</dt><dd id="detail-bins"></dd></div><div><dt>Preferred start</dt><dd id="detail-date"></dd></div><div><dt>Estimate</dt><dd id="detail-price"></dd></div></dl></section>
+    </div>
+    <section class="customer-notes"><h3>Customer notes</h3><p id="detail-notes">No notes provided.</p></section>
+    <form id="request-update-form" class="update-form">
+      <label>Status<select name="status"><option value="new">New</option><option value="contacted">Contacted</option><option value="scheduled">Scheduled</option><option value="active">Active</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+      <label>Private admin notes<textarea name="adminNotes" maxlength="2000" placeholder="Follow-up details, access notes, scheduling information…"></textarea></label>
+      <p id="update-error" class="form-error" role="alert" hidden></p>
+      <button type="submit" id="save-request-button">Save changes <span>→</span></button>
+    </form>
+  </dialog>
+</body>
+</html>
