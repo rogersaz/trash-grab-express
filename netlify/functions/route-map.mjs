@@ -57,7 +57,7 @@ export default async function handler(request) {
   }
 
   const params = new URLSearchParams({
-    size: '900x440',
+    size: '640x360',
     scale: '2',
     format: 'png',
     maptype: 'roadmap',
@@ -70,12 +70,16 @@ export default async function handler(request) {
   const contentType = mapResponse.headers.get('content-type') || '';
 
   if (!mapResponse.ok || !contentType.startsWith('image/')) {
+    const googleMessage = await mapResponse.text().catch(() => '');
     console.error('Google static map failed', {
       status: mapResponse.status,
-      contentType
+      contentType,
+      message: googleMessage.slice(0, 500)
     });
     return json(502, {
-      error: 'The embedded map could not be created. Check that Maps Static API is enabled.'
+      error: mapResponse.status === 403
+        ? 'Google rejected the map request. Check that Maps Static API and billing are enabled for this API key.'
+        : 'The embedded map could not be created. Please try again or use Open in Google Maps.'
     });
   }
 
