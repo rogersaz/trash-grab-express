@@ -12,3 +12,13 @@ dialog{border:0;border-radius:23px;padding:clamp(1.5rem,4vw,2.6rem);width:min(78
 .route-panel,.request-panel{scroll-margin-top:1.5rem}
 .route-panel.route-attention{animation:routeAttention 1.25s ease-out}
 @keyframes routeAttention{0%{box-shadow:0 0 0 0 rgba(255,207,37,.85)}45%{box-shadow:0 0 0 10px rgba(255,207,37,.35)}100%{box-shadow:0 10px 35px rgba(11,30,22,.05)}}
+
+.route-map-preview{margin-top:1rem;background:white;color:var(--ink);border-radius:14px;padding:1rem}
+.route-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.8rem}
+.route-map-toolbar>div{display:grid;gap:.15rem}.route-map-toolbar small,.route-map-toolbar span{color:var(--muted);font-size:.7rem}
+.route-map-toolbar strong{font:700 1rem "Space Grotesk"}
+.route-map-toolbar button{border:0;background:var(--acid);color:var(--ink);font-weight:900;padding:.7rem .9rem;border-radius:9px}
+.route-map-frame{overflow:hidden;border-radius:11px;background:#e6ebe7;aspect-ratio:900/440;display:grid;place-items:center}
+.route-map-frame img{display:block;width:100%;height:100%;object-fit:cover}
+.route-map-preview>p{color:var(--muted);font-size:.72rem;margin:.75rem 0 0}
+@media(max-width:700px){.route-map-toolbar{align-items:stretch;flex-direction:column}.route-map-toolbar button{width:100%}}
