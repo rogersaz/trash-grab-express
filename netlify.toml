@@ -5,3 +5,6 @@
 
 [build.processing]
   skip_processing = false
+
+[functions]
+  directory = "netlify/functions"
