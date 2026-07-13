@@ -202,12 +202,17 @@ function renderRequests() {
   });
 }
 
+function activateNavigation(button) {
+  document.querySelectorAll('.sidebar nav button').forEach(item => item.classList.remove('active'));
+  button.classList.add('active');
+}
+
 document.querySelectorAll('.sidebar nav button[data-status]').forEach(button => {
   button.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar nav button[data-status]').forEach(item => item.classList.remove('active'));
-    button.classList.add('active');
+    activateNavigation(button);
     activeStatus = button.dataset.status;
     renderRequests();
+    document.querySelector('.request-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 searchInput.addEventListener('input', renderRequests);
@@ -565,8 +570,15 @@ routeDate.addEventListener('change', () => {
   routeOrder = [];
   renderRouteStops();
 });
-document.querySelector('#route-nav-button').addEventListener('click', () => {
-  document.querySelector('#route-planner').scrollIntoView({ behavior: 'smooth' });
+document.querySelector('#route-nav-button').addEventListener('click', event => {
+  const routePanel = document.querySelector('#route-planner');
+  activateNavigation(event.currentTarget);
+  routeStatus.textContent = 'Route planner opened. Choose a date, select the pickups, then find the best route.';
+  routePanel.classList.remove('route-attention');
+  requestAnimationFrame(() => routePanel.classList.add('route-attention'));
+  routePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  routeDate.focus({ preventScroll: true });
+  history.replaceState(null, '', '#route-planner');
 });
 const localToday = new Date();
 localToday.setMinutes(localToday.getMinutes() - localToday.getTimezoneOffset());
