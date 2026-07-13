@@ -82,8 +82,18 @@
             <div class="route-empty" id="route-empty">No scheduled or active pickups match this date.</div>
             <div class="route-actions">
               <div><span id="route-count">0 stops selected</span><small id="route-status" role="status"></small></div>
-              <button type="button" id="open-maps-button" disabled>Find best route in Google Maps ↗</button>
+              <button type="button" id="open-maps-button" disabled>Build best route map</button>
             </div>
+            <section class="route-map-preview" id="route-map-preview" hidden aria-labelledby="route-map-title">
+              <div class="route-map-toolbar">
+                <div><small>Embedded Google route</small><strong id="route-map-title">Optimized pickup map</strong><span id="route-map-meta"></span></div>
+                <button type="button" id="external-maps-button" hidden>Open in Google Maps ↗</button>
+              </div>
+              <div class="route-map-frame">
+                <img id="route-map-image" alt="Map preview of the optimized trash pickup route">
+              </div>
+              <p>Use the embedded map to review the route. Open Google Maps when you are ready for interactive, turn-by-turn directions.</p>
+            </section>
           </div>
         </section>
 
