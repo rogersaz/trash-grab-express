@@ -24,6 +24,7 @@ const routeDate = document.querySelector('#route-date');
 const routeStopsList = document.querySelector('#route-stops');
 const routeEmpty = document.querySelector('#route-empty');
 const openMapsButton = document.querySelector('#open-maps-button');
+const routeStatus = document.querySelector('#route-status');
 
 let requests = [];
 let activeStatus = 'all';
@@ -477,16 +478,7 @@ function updateRouteButton() {
   openMapsButton.disabled = !adminProfile || count === 0;
 }
 
-openMapsButton.addEventListener('click', () => {
-  const stops = selectedRouteStops();
-  if (!adminProfile || !stops.length) return;
-  if (stops.length > 8) {
-    window.alert('Google Maps links support a limited number of stops. Select up to 8 pickups for one route.');
-    return;
-  }
-
-  const home = profileAddress();
-  const addresses = stops.map(request => `${request.address}, ${request.zip}`);
+function googleMapsUrl(home, addresses) {
   const destination = adminProfile.return_home ? home : addresses[addresses.length - 1];
   const waypoints = adminProfile.return_home ? addresses : addresses.slice(0, -1);
   const params = new URLSearchParams({
@@ -496,7 +488,77 @@ openMapsButton.addEventListener('click', () => {
     travelmode: 'driving'
   });
   if (waypoints.length) params.set('waypoints', waypoints.join('|'));
-  window.open(`https://www.google.com/maps/dir/?${params.toString()}`, '_blank', 'noopener');
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
+openMapsButton.addEventListener('click', async () => {
+  const stops = selectedRouteStops();
+  if (!adminProfile || !stops.length) return;
+  if (stops.length > 8) {
+    window.alert('Select up to 8 pickups for one Google Maps route.');
+    return;
+  }
+
+  const mapsWindow = window.open('', '_blank');
+  if (mapsWindow) {
+    mapsWindow.opener = null;
+    mapsWindow.document.title = 'Building your pickup route…';
+    mapsWindow.document.body.textContent = 'Finding the best pickup route…';
+  }
+
+  openMapsButton.disabled = true;
+  openMapsButton.textContent = 'Finding best route…';
+  routeStatus.textContent = 'Google is optimizing the stop order…';
+
+  const home = profileAddress();
+  const addresses = stops.map(request => `${request.address}, ${request.zip}`);
+
+  try {
+    const { data: sessionData } = await client.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Your dashboard session expired. Please sign in again.');
+
+    const response = await fetch('/.netlify/functions/optimize-route', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({
+        home,
+        stops: addresses,
+        returnHome: adminProfile.return_home
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !Array.isArray(result.order)) {
+      throw new Error(result.error || 'Google could not optimize this route.');
+    }
+
+    const optimizedAddresses = result.order.map(index => addresses[index]).filter(Boolean);
+    if (optimizedAddresses.length !== addresses.length) {
+      throw new Error('Google returned an incomplete stop order.');
+    }
+
+    const optimizedIds = result.order.map(index => stops[index]?.id).filter(Boolean);
+    const selectedIdSet = new Set(optimizedIds);
+    routeOrder = [
+      ...optimizedIds,
+      ...routeOrder.filter(id => !selectedIdSet.has(id))
+    ];
+    renderRouteStops();
+
+    routeStatus.textContent = 'Best stop order ready. Opening Google Maps…';
+    const url = googleMapsUrl(home, optimizedAddresses);
+    if (mapsWindow) mapsWindow.location.href = url;
+    else window.location.href = url;
+  } catch (error) {
+    if (mapsWindow) mapsWindow.close();
+    routeStatus.textContent = error.message || 'Unable to optimize the route. You can still arrange stops with the arrows.';
+  } finally {
+    openMapsButton.disabled = false;
+    openMapsButton.textContent = 'Find best route in Google Maps ↗';
+  }
 });
 
 routeDate.addEventListener('change', () => {
