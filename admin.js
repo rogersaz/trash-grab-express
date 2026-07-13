@@ -25,6 +25,10 @@ const routeStopsList = document.querySelector('#route-stops');
 const routeEmpty = document.querySelector('#route-empty');
 const openMapsButton = document.querySelector('#open-maps-button');
 const routeStatus = document.querySelector('#route-status');
+const routeMapPanel = document.querySelector('#route-map-preview');
+const routeMapImage = document.querySelector('#route-map-image');
+const routeMapMeta = document.querySelector('#route-map-meta');
+const externalMapsButton = document.querySelector('#external-maps-button');
 
 let requests = [];
 let activeStatus = 'all';
@@ -32,6 +36,8 @@ let selectedRequestId = null;
 let currentUser = null;
 let adminProfile = null;
 let routeOrder = [];
+let lastMapsUrl = '';
+let routeMapObjectUrl = '';
 
 const statusLabels = {
   new: 'New', contacted: 'Contacted', scheduled: 'Scheduled',
@@ -496,6 +502,24 @@ function googleMapsUrl(home, addresses) {
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
+function clearEmbeddedMap() {
+  if (routeMapObjectUrl) URL.revokeObjectURL(routeMapObjectUrl);
+  routeMapObjectUrl = '';
+  lastMapsUrl = '';
+  routeMapImage.removeAttribute('src');
+  routeMapPanel.hidden = true;
+  externalMapsButton.hidden = true;
+}
+
+function routeSummary(duration, distanceMeters) {
+  const seconds = Number.parseInt(String(duration || '').replace('s', ''), 10);
+  const miles = Number(distanceMeters) / 1609.344;
+  const parts = [];
+  if (Number.isFinite(seconds)) parts.push(`about ${Math.max(1, Math.round(seconds / 60))} min`);
+  if (Number.isFinite(miles)) parts.push(`${miles.toFixed(1)} mi`);
+  return parts.length ? parts.join(' · ') : 'Optimized pickup route';
+}
+
 openMapsButton.addEventListener('click', async () => {
   const stops = selectedRouteStops();
   if (!adminProfile || !stops.length) return;
@@ -504,16 +528,10 @@ openMapsButton.addEventListener('click', async () => {
     return;
   }
 
-  const mapsWindow = window.open('', '_blank');
-  if (mapsWindow) {
-    mapsWindow.opener = null;
-    mapsWindow.document.title = 'Building your pickup route…';
-    mapsWindow.document.body.textContent = 'Finding the best pickup route…';
-  }
-
+  clearEmbeddedMap();
   openMapsButton.disabled = true;
-  openMapsButton.textContent = 'Finding best route…';
-  routeStatus.textContent = 'Google is optimizing the stop order…';
+  openMapsButton.textContent = 'Building route map…';
+  routeStatus.textContent = 'Google is optimizing the stop order and drawing the map…';
 
   const home = profileAddress();
   const addresses = stops.map(request => `${request.address}, ${request.zip}`);
@@ -553,21 +571,48 @@ openMapsButton.addEventListener('click', async () => {
     ];
     renderRouteStops();
 
-    routeStatus.textContent = 'Best stop order ready. Opening Google Maps…';
-    const url = googleMapsUrl(home, optimizedAddresses);
-    if (mapsWindow) mapsWindow.location.href = url;
-    else window.location.href = url;
+    lastMapsUrl = googleMapsUrl(home, optimizedAddresses);
+    externalMapsButton.hidden = false;
+    routeMapMeta.textContent = routeSummary(result.duration, result.distanceMeters);
+
+    if (result.polyline) {
+      const mapResponse = await fetch('/.netlify/functions/route-map', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ polyline: result.polyline })
+      });
+      if (!mapResponse.ok) {
+        const mapError = await mapResponse.json().catch(() => ({}));
+        throw new Error(mapError.error || 'The embedded map could not be loaded.');
+      }
+      const mapBlob = await mapResponse.blob();
+      routeMapObjectUrl = URL.createObjectURL(mapBlob);
+      routeMapImage.src = routeMapObjectUrl;
+      routeMapPanel.hidden = false;
+      routeMapPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      routeStatus.textContent = 'Best route ready. The map is displayed below.';
+    } else {
+      routeStatus.textContent = 'Best stop order ready. Use Open in Google Maps for directions.';
+    }
   } catch (error) {
-    if (mapsWindow) mapsWindow.close();
-    routeStatus.textContent = error.message || 'Unable to optimize the route. You can still arrange stops with the arrows.';
+    routeStatus.textContent = error.message || 'Unable to build the route map. You can still arrange stops with the arrows.';
   } finally {
     openMapsButton.disabled = false;
-    openMapsButton.textContent = 'Find best route in Google Maps ↗';
+    openMapsButton.textContent = 'Build best route map';
   }
+});
+
+externalMapsButton.addEventListener('click', () => {
+  if (lastMapsUrl) window.open(lastMapsUrl, '_blank', 'noopener');
 });
 
 routeDate.addEventListener('change', () => {
   routeOrder = [];
+  clearEmbeddedMap();
+  routeStatus.textContent = '';
   renderRouteStops();
 });
 document.querySelector('#route-nav-button').addEventListener('click', event => {
