@@ -71,10 +71,6 @@ export default async function handler(request) {
     return json(400, { error: 'Provide a home address and between 1 and 8 valid stops.' });
   }
 
-  if (stops.length === 1) {
-    return json(200, { order: [0], distanceMeters: null, duration: null });
-  }
-
   const destination = returnHome ? home : stops[stops.length - 1];
   const intermediateStops = returnHome ? stops : stops.slice(0, -1);
   const requestBody = {
@@ -83,7 +79,9 @@ export default async function handler(request) {
     intermediates: intermediateStops.map(address => ({ address })),
     travelMode: 'DRIVE',
     routingPreference: 'TRAFFIC_AWARE',
-    optimizeWaypointOrder: true
+    optimizeWaypointOrder: intermediateStops.length > 0,
+    polylineQuality: 'OVERVIEW',
+    polylineEncoding: 'ENCODED_POLYLINE'
   };
 
   const googleResponse = await fetch(
@@ -93,7 +91,7 @@ export default async function handler(request) {
       headers: {
         'content-type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'routes.optimizedIntermediateWaypointIndex,routes.distanceMeters,routes.duration'
+        'X-Goog-FieldMask': 'routes.optimizedIntermediateWaypointIndex,routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline'
       },
       body: JSON.stringify(requestBody)
     }
@@ -112,17 +110,20 @@ export default async function handler(request) {
 
   const route = googleData?.routes?.[0];
   const optimized = route?.optimizedIntermediateWaypointIndex;
-  if (!route || !Array.isArray(optimized)) {
+  if (!route || (stops.length > 1 && !Array.isArray(optimized))) {
     return json(502, { error: 'Google did not return an optimized route.' });
   }
 
-  const order = returnHome
-    ? optimized
-    : [...optimized, stops.length - 1];
+  const order = stops.length === 1
+    ? [0]
+    : returnHome
+      ? optimized
+      : [...optimized, stops.length - 1];
 
   return json(200, {
     order,
     distanceMeters: route.distanceMeters ?? null,
-    duration: route.duration ?? null
+    duration: route.duration ?? null,
+    polyline: route.polyline?.encodedPolyline ?? null
   });
 }
