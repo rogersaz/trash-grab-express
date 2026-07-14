@@ -1,11 +1,15 @@
-# Trash Grab Express Website & Admin Dashboard Guide
+# 🗑️✨ Trash Grab Express Website & Admin Dashboard Guide
 
 **Live website:** https://trashgrab.app  
 **Admin dashboard:** https://trashgrab.app/admin.html
 
+**Colorful web guide:** https://trashgrab.app/docs/dashboard-user-guide.html
+
+> 🟢 **Updated July 2026:** Includes Home Base, permanent pickup deletion, Google Route Optimization with waypoint fallback, embedded interactive maps, up to 25 selected pickups, numbered stopping order, customer names and addresses on markers, the stop key, and Google Maps navigation handoff.
+
 > Keep administrator login credentials private. Share them separately with approved staff; never place a password in this guide, email thread, or GitHub.
 
-## Daily quick start
+## ⚡ Daily quick start
 
 1. Open the admin dashboard and sign in with an approved administrator account.
 2. Review **New** requests and open each record with **View**.
@@ -15,7 +19,7 @@
 6. Select **Build best route map**. Review the numbered, optimized route, then select **Start navigation**.
 7. After service, change the request to **Completed**, or set the next pickup date and keep a recurring customer **Active**.
 
-## How customers use the website
+## 🌐 How customers use the website
 
 1. A customer opens https://trashgrab.app.
 2. They review the service and pricing information.
@@ -24,7 +28,7 @@
 
 If a customer reports that the form did not save, ask them to refresh the page and try once more. Record the browser-console message if the problem continues.
 
-## Dashboard sections
+## 🎛️ Dashboard sections
 
 - **All requests:** Every customer request.
 - **New:** Requests waiting for first review.
@@ -37,7 +41,18 @@ If a customer reports that the form did not save, ask them to refresh the page a
 
 Use **Search** to find a customer by name, email, phone, street address, or ZIP code. Select **Refresh** when you need to reload the latest records.
 
-## Managing a pickup request
+## 🎨 Status color key
+
+| Status | Color | Use it when |
+|---|---|---|
+| 🟡 **New** | Yellow | A new request is waiting for review. |
+| 🔵 **Contacted** | Blue | The customer has been contacted. |
+| 🟣 **Scheduled** | Purple | A pickup date is confirmed and ready for routing. |
+| 🟢 **Active** | Green | The customer receives ongoing or recurring service. |
+| ✅ **Completed** | Gray-green | A one-time pickup is finished. |
+| 🔴 **Cancelled** | Red | The request will not be serviced. |
+
+## 👤 Managing a pickup request
 
 1. Select **View** beside the customer.
 2. Review contact, service, price estimate, requested date, and customer notes.
@@ -46,11 +61,11 @@ Use **Search** to find a customer by name, email, phone, street address, or ZIP 
 5. Add private scheduling or access information under **Private admin notes**.
 6. Select **Save changes**.
 
-### Deleting a pickup
+### 🗑️ Deleting a pickup
 
 Select **Delete pickup** only when the record is a duplicate, test, or genuinely should be removed. Confirm the warning carefully. Deletion is permanent and cannot be undone.
 
-## Setting Home Base
+## 🏠 Setting Home Base
 
 1. Select **Home base** from the menu or dashboard header.
 2. Enter the operator's name, phone number, street address, city, state, and ZIP code.
@@ -59,7 +74,7 @@ Select **Delete pickup** only when the record is a duplicate, test, or genuinely
 
 Home Base information is private and available only to an approved signed-in administrator.
 
-## Building the route and embedded map
+## 🗺️ Building the optimized route and embedded map
 
 A pickup appears in the Route Planner only when:
 
@@ -79,7 +94,28 @@ The dashboard can optimize up to 25 pickups at a time. Google Maps navigation li
 
 For routes with 10 or fewer pickups, names and addresses stay visible beside the map markers. Larger routes use compact numbered markers to keep the map readable; select a marker or use the stop key below the map to see the matching customer and address.
 
-## Recommended operating routine
+### Marker key
+
+| Marker | Meaning |
+|---|---|
+| ⚫ **H** | Home Base—the route's starting point and optional ending point. |
+| 🟡 **1, 2, 3…** | Google's optimized pickup order. |
+| **Name + address card** | The customer assigned to that marker. Visible automatically on routes of 10 stops or fewer. |
+| **Stop key below map** | Complete numbered list of customers and addresses, including large routes. |
+
+> 💡 **Map tip:** Select any numbered marker to reopen that customer’s name and complete pickup address. The route line and stopping order are calculated by Google; always verify addresses before driving.
+
+### What the route system does now
+
+- Uses the **Google Route Optimization API** when its private service settings are available.
+- Automatically falls back to **Routes API waypoint optimization** so planning can continue if the advanced optimizer is unavailable.
+- Supports up to **25 selected pickups** in one dashboard route.
+- Draws the optimized route inside the dashboard with numbered markers.
+- Shows customer names and addresses directly on small routes and in the stop key for every route.
+- Opens Google Maps navigation from **Start navigation**.
+- Keeps a static map fallback available if the interactive browser map cannot load.
+
+## ✅ Recommended operating routine
 
 ### Start of day
 
@@ -102,7 +138,7 @@ For routes with 10 or fewer pickups, names and addresses stay visible beside the
 - Resolve or reschedule missed stops.
 - Sign out when finished.
 
-## Troubleshooting
+## 🧰 Troubleshooting
 
 ### A pickup does not appear in the route
 
@@ -128,7 +164,7 @@ Refresh the dashboard and sign in again. If the problem continues, record the fu
 
 Confirm the email and password. The account must also be on the approved administrator list. Do not share or reset someone else's password.
 
-## Security rules
+## 🔒 Security rules
 
 - Use only https://trashgrab.app/admin.html for live administration.
 - Never share the Google API key, Supabase keys, passwords, or login tokens.
@@ -138,7 +174,7 @@ Confirm the email and password. The account must also be on the approved adminis
 - Verify the customer's address before launching a route.
 - Treat deletion as permanent.
 
-## New administrator handoff checklist
+## 🎓 New administrator handoff checklist
 
 - Provide the dashboard address.
 - Provide login credentials through a private channel.

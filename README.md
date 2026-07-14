@@ -2,6 +2,8 @@
 
 A responsive service website with a Supabase-backed customer-request system and protected admin dashboard.
 
+[Open the live website](https://trashgrab.app) · [Open the admin dashboard](https://trashgrab.app/admin.html) · [Read the colorful dashboard guide](https://trashgrab.app/docs/dashboard-user-guide.html)
+
 ## Included
 
 - responsive landing page and mobile navigation
@@ -15,6 +17,7 @@ A responsive service website with a Supabase-backed customer-request system and 
 - Row Level Security protecting customer data
 - accessible FAQ accordion and motion preferences
 - baseline browser security headers
+- colorful, printable administrator handbook linked directly from the dashboard
 
 ## Admin
 
