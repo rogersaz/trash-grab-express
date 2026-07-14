@@ -28,6 +28,7 @@ const routeStatus = document.querySelector('#route-status');
 const routeMapPanel = document.querySelector('#route-map-preview');
 const routeMap = document.querySelector('#route-map');
 const routeMapImage = document.querySelector('#route-map-image');
+const routeMapLegend = document.querySelector('#route-map-legend');
 const routeMapMeta = document.querySelector('#route-map-meta');
 const routeMapEngine = document.querySelector('#route-map-engine');
 const externalMapsButton = document.querySelector('#external-maps-button');
@@ -523,6 +524,7 @@ function clearEmbeddedMap() {
   routeMapMarkers.forEach(marker => { marker.map = null; });
   routeMapMarkers = [];
   routeMap.replaceChildren();
+  routeMapLegend.replaceChildren();
   routeMap.hidden = false;
   routeMapImage.removeAttribute('src');
   routeMapImage.hidden = true;
@@ -608,13 +610,64 @@ async function loadGoogleMaps(token) {
   return googleMapsPromise;
 }
 
-function markerContent(label, isHome = false) {
+function markerContent(label, details, isHome = false, showDetails = true) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'map-marker-wrap';
   const marker = document.createElement('div');
   marker.className = `map-marker${isHome ? ' home' : ''}`;
   const text = document.createElement('span');
   text.textContent = label;
   marker.append(text);
-  return marker;
+  wrapper.append(marker);
+
+  if (showDetails && details) {
+    const card = document.createElement('div');
+    card.className = 'map-marker-card';
+    const name = document.createElement('strong');
+    name.textContent = details.name;
+    const address = document.createElement('span');
+    address.textContent = details.address;
+    card.append(name, address);
+    wrapper.append(card);
+  }
+  return wrapper;
+}
+
+function infoWindowContent(number, details) {
+  const card = document.createElement('div');
+  card.className = 'map-info-card';
+  const heading = document.createElement('strong');
+  heading.textContent = `${number}. ${details.name}`;
+  const address = document.createElement('span');
+  address.textContent = details.address;
+  card.append(heading, address);
+  return card;
+}
+
+function stopDetails(stop) {
+  return {
+    name: `${stop.first_name} ${stop.last_name}`,
+    address: `${stop.address}, ${stop.zip}`
+  };
+}
+
+function renderRouteLegend(optimizedStops) {
+  routeMapLegend.replaceChildren();
+  optimizedStops.forEach((stop, index) => {
+    const details = stopDetails(stop);
+    const item = document.createElement('li');
+    const number = document.createElement('span');
+    number.className = 'route-legend-number';
+    number.textContent = String(index + 1);
+    const text = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = details.name;
+    const address = document.createElement('span');
+    address.textContent = details.address;
+    text.append(name, address);
+    item.append(number, text);
+    routeMapLegend.append(item);
+  });
 }
 
 async function showInteractiveMap(result, optimizedStops, token) {
@@ -643,21 +696,39 @@ async function showInteractiveMap(result, optimizedStops, token) {
     strokeWeight: 6
   });
 
+  const infoWindow = new maps.InfoWindow();
+  const homeDetails = { name: 'Home Base', address: profileAddress() };
+  const showDetails = optimizedStops.length <= 10;
+
   const homeMarker = new maps.marker.AdvancedMarkerElement({
     map: routeMapInstance,
     position: result.homeLocation,
     title: 'Home Base',
-    content: markerContent('H', true)
+    content: markerContent('H', homeDetails, true, showDetails),
+    gmpClickable: true,
+    zIndex: 100
+  });
+  homeMarker.addListener('click', () => {
+    infoWindow.setContent(infoWindowContent('H', homeDetails));
+    infoWindow.open({ map: routeMapInstance, anchor: homeMarker });
   });
   routeMapMarkers.push(homeMarker);
   result.stopLocations.forEach((position, index) => {
+    const details = stopDetails(optimizedStops[index]);
     bounds.extend(position);
-    routeMapMarkers.push(new maps.marker.AdvancedMarkerElement({
+    const marker = new maps.marker.AdvancedMarkerElement({
       map: routeMapInstance,
       position,
-      title: `${index + 1}. ${optimizedStops[index].first_name} ${optimizedStops[index].last_name}`,
-      content: markerContent(String(index + 1))
-    }));
+      title: `${index + 1}. ${details.name} — ${details.address}`,
+      content: markerContent(String(index + 1), details, false, showDetails),
+      gmpClickable: true,
+      zIndex: 99 - index
+    });
+    marker.addListener('click', () => {
+      infoWindow.setContent(infoWindowContent(index + 1, details));
+      infoWindow.open({ map: routeMapInstance, anchor: marker });
+    });
+    routeMapMarkers.push(marker);
   });
   routeMapInstance.fitBounds(bounds, 48);
   routeMap.hidden = false;
@@ -746,6 +817,7 @@ openMapsButton.addEventListener('click', async () => {
     routeMapEngine.textContent = result.optimizer === 'route-optimization'
       ? 'Google Route Optimization API'
       : 'Google waypoint optimization';
+    renderRouteLegend(optimizedStops);
 
     if (result.polyline) {
       let interactive = true;

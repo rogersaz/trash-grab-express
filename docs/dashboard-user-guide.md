@@ -72,10 +72,12 @@ To build a route:
 2. Choose the correct pickup date.
 3. Check the stops to include.
 4. Select **Build best route map**. Google rearranges the selected pickups into the most efficient stopping order.
-5. Review the numbered order and the embedded interactive map.
+5. Review the numbered order and the embedded interactive map. Pickup markers show the customer's name and address; select a marker to reopen its details.
 6. Select **Start navigation** when you are ready to drive.
 
 The dashboard can optimize up to 25 pickups at a time. Google Maps navigation links can carry fewer stops than the optimizer, so routes above 10 pickups open the first route section in Google Maps while the complete numbered order remains visible on the dashboard. Always check the map and customer addresses before driving.
+
+For routes with 10 or fewer pickups, names and addresses stay visible beside the map markers. Larger routes use compact numbered markers to keep the map readable; select a marker or use the stop key below the map to see the matching customer and address.
 
 ## Recommended operating routine
 

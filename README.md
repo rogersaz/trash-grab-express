@@ -11,7 +11,7 @@ A responsive service website with a Supabase-backed customer-request system and 
 - status filters, private admin notes, and request updates
 - Google Route Optimization API with automatic Routes waypoint-optimization fallback
 - up to 25 selected pickups with optimized stopping order
-- interactive Google map with numbered stops and a Google Maps navigation handoff
+- interactive Google map with numbered stops, customer names, addresses, and a Google Maps navigation handoff
 - Row Level Security protecting customer data
 - accessible FAQ accordion and motion preferences
 - baseline browser security headers
