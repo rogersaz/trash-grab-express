@@ -12,7 +12,7 @@
 3. Confirm the customer's contact information, address, plan, bin count, and requested date.
 4. Set the **Next pickup date**, choose the correct status, add private notes, and select **Save changes**.
 5. Open **Route planner**, select the pickup date, and confirm the correct stops are checked.
-6. Select **Build best route map**. Review the embedded route, then select **Open in Google Maps** for interactive directions.
+6. Select **Build best route map**. Review the numbered, optimized route, then select **Start navigation**.
 7. After service, change the request to **Completed**, or set the next pickup date and keep a recurring customer **Active**.
 
 ## How customers use the website
@@ -71,12 +71,11 @@ To build a route:
 1. Open **Route planner**.
 2. Choose the correct pickup date.
 3. Check the stops to include.
-4. Use the up and down arrows if you want to influence the order or select a specific final stop.
-5. Select **Build best route map**.
-6. Review the optimized route image embedded in the dashboard.
-7. Select **Open in Google Maps** for an interactive map and turn-by-turn directions.
+4. Select **Build best route map**. Google rearranges the selected pickups into the most efficient stopping order.
+5. Review the numbered order and the embedded interactive map.
+6. Select **Start navigation** when you are ready to drive.
 
-The dashboard supports up to eight pickup stops in one Google Maps route. Always check the map and customer addresses before driving.
+The dashboard can optimize up to 25 pickups at a time. Google Maps navigation links can carry fewer stops than the optimizer, so routes above 10 pickups open the first route section in Google Maps while the complete numbered order remains visible on the dashboard. Always check the map and customer addresses before driving.
 
 ## Recommended operating routine
 
@@ -113,7 +112,11 @@ Set Home Base, select a date with eligible pickups, and ensure at least one stop
 
 ### The embedded map does not load
 
-The route can still be opened with **Open in Google Maps**. An administrator should confirm that the Google **Routes API** and **Maps Static API** are enabled and that Netlify contains the secret environment variable named `GOOGLE_MAPS_API_KEY`.
+The route can still be opened with **Start navigation**. An administrator should confirm that the Google **Maps JavaScript API**, **Routes API**, and **Maps Static API** are enabled. Netlify needs `GOOGLE_MAPS_API_KEY` for server requests and a separate, website-restricted `GOOGLE_MAPS_BROWSER_API_KEY` for the interactive map.
+
+### The dashboard says waypoint optimization instead of Route Optimization
+
+The route is still optimized and safe to use. The advanced Route Optimization API requires three additional private Netlify settings: the Google Cloud project ID, service-account email, and service-account private key. If any are missing or Google temporarily rejects the advanced request, the dashboard automatically uses Routes API waypoint optimization so route planning keeps working.
 
 ### Unable to load or save requests
 

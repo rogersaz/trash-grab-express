@@ -70,10 +70,16 @@
 
         <section class="route-panel" id="route-planner">
           <div class="route-heading">
-            <div><p class="eyebrow">Google Maps route</p><h2>Today's pickup run</h2><p>Choose a date, include the stops you need, then launch directions from your saved home base.</p></div>
+            <div><p class="eyebrow">Google route optimization</p><h2>Today's pickup run</h2><p>Choose the pickups. Google will calculate the most efficient stopping order and route.</p></div>
             <label>Pickup date<input type="date" id="route-date"></label>
           </div>
           <div class="route-body">
+            <ol class="route-workflow" aria-label="Route planning steps">
+              <li><span>1</span><div><strong>Choose date</strong><small>Show scheduled pickups</small></div></li>
+              <li><span>2</span><div><strong>Select stops</strong><small>Include up to 25</small></div></li>
+              <li><span>3</span><div><strong>Build route</strong><small>Google sets the order</small></div></li>
+              <li><span>4</span><div><strong>Start driving</strong><small>Open Google Maps</small></div></li>
+            </ol>
             <div class="home-base-card" id="home-base-card">
               <span>⌂</span><div><small>Starting from</small><strong id="home-base-summary">Home base not set</strong></div>
               <button type="button" id="route-profile-button">Set home base</button>
@@ -86,13 +92,14 @@
             </div>
             <section class="route-map-preview" id="route-map-preview" hidden aria-labelledby="route-map-title">
               <div class="route-map-toolbar">
-                <div><small>Embedded Google route</small><strong id="route-map-title">Optimized pickup map</strong><span id="route-map-meta"></span></div>
-                <button type="button" id="external-maps-button" hidden>Open in Google Maps ↗</button>
+                <div><small id="route-map-engine">Google optimized route</small><strong id="route-map-title">Optimized pickup map</strong><span id="route-map-meta"></span></div>
+                <button type="button" id="external-maps-button" hidden>Start navigation ↗</button>
               </div>
               <div class="route-map-frame">
-                <img id="route-map-image" alt="Map preview of the optimized trash pickup route">
+                <div id="route-map" aria-label="Interactive map of the optimized trash pickup route"></div>
+                <img id="route-map-image" hidden alt="Map preview of the optimized trash pickup route">
               </div>
-              <p>Use the embedded map to review the route. Open Google Maps when you are ready for interactive, turn-by-turn directions.</p>
+              <p>Markers show Home Base and the optimized stopping order. Verify every address before starting navigation.</p>
             </section>
           </div>
         </section>

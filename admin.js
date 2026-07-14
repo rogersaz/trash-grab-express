@@ -26,8 +26,10 @@ const routeEmpty = document.querySelector('#route-empty');
 const openMapsButton = document.querySelector('#open-maps-button');
 const routeStatus = document.querySelector('#route-status');
 const routeMapPanel = document.querySelector('#route-map-preview');
+const routeMap = document.querySelector('#route-map');
 const routeMapImage = document.querySelector('#route-map-image');
 const routeMapMeta = document.querySelector('#route-map-meta');
+const routeMapEngine = document.querySelector('#route-map-engine');
 const externalMapsButton = document.querySelector('#external-maps-button');
 
 let requests = [];
@@ -36,8 +38,12 @@ let selectedRequestId = null;
 let currentUser = null;
 let adminProfile = null;
 let routeOrder = [];
+let excludedRouteIds = new Set();
 let lastMapsUrl = '';
 let routeMapObjectUrl = '';
+let googleMapsPromise = null;
+let routeMapInstance = null;
+let routeMapMarkers = [];
 
 const statusLabels = {
   new: 'New', contacted: 'Contacted', scheduled: 'Scheduled',
@@ -411,6 +417,7 @@ function routeRequests() {
     ['scheduled', 'active'].includes(request.status)
   );
   const ids = eligible.map(request => request.id);
+  excludedRouteIds = new Set([...excludedRouteIds].filter(id => ids.includes(id)));
   routeOrder = routeOrder.filter(id => ids.includes(id));
   ids.forEach(id => {
     if (!routeOrder.includes(id)) routeOrder.push(id);
@@ -439,10 +446,14 @@ function renderRouteStops() {
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = true;
+    checkbox.checked = !excludedRouteIds.has(request.id);
     checkbox.dataset.routeId = request.id;
     checkbox.setAttribute('aria-label', `Include ${request.first_name} ${request.last_name}`);
-    checkbox.addEventListener('change', updateRouteButton);
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) excludedRouteIds.delete(request.id);
+      else excludedRouteIds.add(request.id);
+      updateRouteButton();
+    });
 
     const number = document.createElement('span');
     number.className = 'stop-number';
@@ -490,13 +501,16 @@ function updateRouteButton() {
 }
 
 function googleMapsUrl(home, addresses) {
-  const destination = adminProfile.return_home ? home : addresses[addresses.length - 1];
-  const waypoints = adminProfile.return_home ? addresses : addresses.slice(0, -1);
+  const canReturnHome = adminProfile.return_home && addresses.length <= 9;
+  const included = canReturnHome ? addresses : addresses.slice(0, 10);
+  const destination = canReturnHome ? home : included[included.length - 1];
+  const waypoints = canReturnHome ? included : included.slice(0, -1);
   const params = new URLSearchParams({
     api: '1',
     origin: home,
     destination,
-    travelmode: 'driving'
+    travelmode: 'driving',
+    dir_action: 'navigate'
   });
   if (waypoints.length) params.set('waypoints', waypoints.join('|'));
   return `https://www.google.com/maps/dir/?${params.toString()}`;
@@ -506,7 +520,12 @@ function clearEmbeddedMap() {
   if (routeMapObjectUrl) URL.revokeObjectURL(routeMapObjectUrl);
   routeMapObjectUrl = '';
   lastMapsUrl = '';
+  routeMapMarkers.forEach(marker => { marker.map = null; });
+  routeMapMarkers = [];
+  routeMap.replaceChildren();
+  routeMap.hidden = false;
   routeMapImage.removeAttribute('src');
+  routeMapImage.hidden = true;
   routeMapPanel.hidden = true;
   externalMapsButton.hidden = true;
 }
@@ -520,11 +539,159 @@ function routeSummary(duration, distanceMeters) {
   return parts.length ? parts.join(' · ') : 'Optimized pickup route';
 }
 
+function decodePolyline(encoded) {
+  const points = [];
+  let index = 0;
+  let latitude = 0;
+  let longitude = 0;
+  while (index < encoded.length) {
+    const deltas = [];
+    for (let coordinate = 0; coordinate < 2; coordinate += 1) {
+      let result = 0;
+      let shift = 0;
+      let byte;
+      do {
+        byte = encoded.charCodeAt(index) - 63;
+        index += 1;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20 && index <= encoded.length);
+      deltas.push((result & 1) ? ~(result >> 1) : result >> 1);
+    }
+    latitude += deltas[0];
+    longitude += deltas[1];
+    points.push({ lat: latitude / 1e5, lng: longitude / 1e5 });
+  }
+  return points;
+}
+
+async function getAccessToken() {
+  const { data } = await client.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Your dashboard session expired. Please sign in again.');
+  return token;
+}
+
+async function loadGoogleMaps(token) {
+  if (window.google?.maps?.Map && window.google.maps.marker?.AdvancedMarkerElement) {
+    return { api: window.google.maps, mapId: 'DEMO_MAP_ID' };
+  }
+  if (googleMapsPromise) return googleMapsPromise;
+
+  googleMapsPromise = (async () => {
+    const response = await fetch('/.netlify/functions/maps-config', {
+      headers: { authorization: `Bearer ${token}` }
+    });
+    const config = await response.json().catch(() => ({}));
+    if (!response.ok || !config.apiKey) throw new Error(config.error || 'Interactive Google Maps is unavailable.');
+
+    await new Promise((resolve, reject) => {
+      const callbackName = `trashGrabMapsReady_${Date.now()}`;
+      window[callbackName] = () => {
+        delete window[callbackName];
+        resolve();
+      };
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(config.apiKey)}&loading=async&libraries=marker&callback=${callbackName}`;
+      script.async = true;
+      script.onerror = () => {
+        delete window[callbackName];
+        reject(new Error('Google Maps could not load.'));
+      };
+      document.head.append(script);
+    });
+    return { api: window.google.maps, mapId: config.mapId };
+  })().catch(error => {
+    googleMapsPromise = null;
+    throw error;
+  });
+  return googleMapsPromise;
+}
+
+function markerContent(label, isHome = false) {
+  const marker = document.createElement('div');
+  marker.className = `map-marker${isHome ? ' home' : ''}`;
+  const text = document.createElement('span');
+  text.textContent = label;
+  marker.append(text);
+  return marker;
+}
+
+async function showInteractiveMap(result, optimizedStops, token) {
+  if (!result.polyline || !result.homeLocation || result.stopLocations?.some(point => !point)) {
+    throw new Error('Google did not return enough map details.');
+  }
+  const googleMaps = await loadGoogleMaps(token);
+  const maps = googleMaps.api;
+  const path = decodePolyline(result.polyline);
+  const bounds = new maps.LatLngBounds();
+  path.forEach(point => bounds.extend(point));
+
+  routeMapInstance = new maps.Map(routeMap, {
+    mapId: googleMaps.mapId,
+    center: result.homeLocation,
+    zoom: 11,
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: true
+  });
+  new maps.Polyline({
+    path,
+    map: routeMapInstance,
+    strokeColor: '#235340',
+    strokeOpacity: 0.95,
+    strokeWeight: 6
+  });
+
+  const homeMarker = new maps.marker.AdvancedMarkerElement({
+    map: routeMapInstance,
+    position: result.homeLocation,
+    title: 'Home Base',
+    content: markerContent('H', true)
+  });
+  routeMapMarkers.push(homeMarker);
+  result.stopLocations.forEach((position, index) => {
+    bounds.extend(position);
+    routeMapMarkers.push(new maps.marker.AdvancedMarkerElement({
+      map: routeMapInstance,
+      position,
+      title: `${index + 1}. ${optimizedStops[index].first_name} ${optimizedStops[index].last_name}`,
+      content: markerContent(String(index + 1))
+    }));
+  });
+  routeMapInstance.fitBounds(bounds, 48);
+  routeMap.hidden = false;
+  routeMapImage.hidden = true;
+}
+
+async function showStaticMap(result, token) {
+  const response = await fetch('/.netlify/functions/route-map', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      polyline: result.polyline,
+      homeLocation: result.homeLocation,
+      stopLocations: result.stopLocations
+    })
+  });
+  if (!response.ok) {
+    const mapError = await response.json().catch(() => ({}));
+    throw new Error(mapError.error || 'The embedded map could not be loaded.');
+  }
+  routeMapObjectUrl = URL.createObjectURL(await response.blob());
+  routeMapImage.src = routeMapObjectUrl;
+  routeMapImage.hidden = false;
+  routeMap.hidden = true;
+}
+
 openMapsButton.addEventListener('click', async () => {
   const stops = selectedRouteStops();
   if (!adminProfile || !stops.length) return;
-  if (stops.length > 8) {
-    window.alert('Select up to 8 pickups for one Google Maps route.');
+  if (stops.length > 25) {
+    window.alert('Select up to 25 pickups for one optimized route.');
     return;
   }
 
@@ -537,9 +704,7 @@ openMapsButton.addEventListener('click', async () => {
   const addresses = stops.map(request => `${request.address}, ${request.zip}`);
 
   try {
-    const { data: sessionData } = await client.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-    if (!accessToken) throw new Error('Your dashboard session expired. Please sign in again.');
+    const accessToken = await getAccessToken();
 
     const response = await fetch('/.netlify/functions/optimize-route', {
       method: 'POST',
@@ -559,6 +724,7 @@ openMapsButton.addEventListener('click', async () => {
     }
 
     const optimizedAddresses = result.order.map(index => addresses[index]).filter(Boolean);
+    const optimizedStops = result.order.map(index => stops[index]).filter(Boolean);
     if (optimizedAddresses.length !== addresses.length) {
       throw new Error('Google returned an incomplete stop order.');
     }
@@ -573,29 +739,31 @@ openMapsButton.addEventListener('click', async () => {
 
     lastMapsUrl = googleMapsUrl(home, optimizedAddresses);
     externalMapsButton.hidden = false;
+    externalMapsButton.textContent = optimizedAddresses.length > 10
+      ? 'Start first route section ↗'
+      : 'Start navigation ↗';
     routeMapMeta.textContent = routeSummary(result.duration, result.distanceMeters);
+    routeMapEngine.textContent = result.optimizer === 'route-optimization'
+      ? 'Google Route Optimization API'
+      : 'Google waypoint optimization';
 
     if (result.polyline) {
-      const mapResponse = await fetch('/.netlify/functions/route-map', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({ polyline: result.polyline })
-      });
-      if (!mapResponse.ok) {
-        const mapError = await mapResponse.json().catch(() => ({}));
-        throw new Error(mapError.error || 'The embedded map could not be loaded.');
+      let interactive = true;
+      try {
+        await showInteractiveMap(result, optimizedStops, accessToken);
+      } catch (interactiveError) {
+        console.info('Using static route map fallback', { message: interactiveError.message });
+        interactive = false;
+        await showStaticMap(result, accessToken);
       }
-      const mapBlob = await mapResponse.blob();
-      routeMapObjectUrl = URL.createObjectURL(mapBlob);
-      routeMapImage.src = routeMapObjectUrl;
       routeMapPanel.hidden = false;
       routeMapPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      routeStatus.textContent = 'Best route ready. The map is displayed below.';
+      const sectionMessage = optimizedAddresses.length > 10
+        ? ' Navigation opens the first 10 stops; the complete order stays numbered here.'
+        : '';
+      routeStatus.textContent = `Best route ready with ${interactive ? 'an interactive' : 'a preview'} map.${sectionMessage}`;
     } else {
-      routeStatus.textContent = 'Best stop order ready. Use Open in Google Maps for directions.';
+      routeStatus.textContent = 'Best stop order ready. Use Start navigation for directions.';
     }
   } catch (error) {
     routeStatus.textContent = error.message || 'Unable to build the route map. You can still arrange stops with the arrows.';
@@ -611,6 +779,7 @@ externalMapsButton.addEventListener('click', () => {
 
 routeDate.addEventListener('change', () => {
   routeOrder = [];
+  excludedRouteIds.clear();
   clearEmbeddedMap();
   routeStatus.textContent = '';
   renderRouteStops();

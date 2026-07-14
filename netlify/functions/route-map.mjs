@@ -75,7 +75,16 @@ function samplePoints(points, targetCount) {
   return sampled;
 }
 
-function staticMapUrl(polyline, apiKey) {
+function validPoint(point) {
+  return point && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng)) &&
+    Math.abs(Number(point.lat)) <= 90 && Math.abs(Number(point.lng)) <= 180;
+}
+
+function markerLabel(index) {
+  return index < 9 ? String(index + 1) : String.fromCharCode(65 + Math.min(index - 9, 25));
+}
+
+function staticMapUrl(polyline, apiKey, homeLocation, stopLocations) {
   const params = new URLSearchParams({
     size: '640x360',
     scale: '2',
@@ -84,11 +93,17 @@ function staticMapUrl(polyline, apiKey) {
     path: `weight:5|color:0x235340ff|enc:${polyline}`,
     key: apiKey
   });
+  if (validPoint(homeLocation)) {
+    params.append('markers', `size:mid|color:0x10231b|label:H|${homeLocation.lat},${homeLocation.lng}`);
+  }
+  stopLocations.filter(validPoint).forEach((point, index) => {
+    params.append('markers', `size:mid|color:0xffcf25|label:${markerLabel(index)}|${point.lat},${point.lng}`);
+  });
   return `https://maps.googleapis.com/maps/api/staticmap?${params}`;
 }
 
-function reducePolylineForUrl(encoded, apiKey) {
-  const fits = value => staticMapUrl(value, apiKey).length <= 15000;
+function reducePolylineForUrl(encoded, apiKey, homeLocation, stopLocations) {
+  const fits = value => staticMapUrl(value, apiKey, homeLocation, stopLocations).length <= 15000;
   if (fits(encoded)) return encoded;
 
   const points = decodePolyline(encoded);
@@ -145,13 +160,17 @@ export default async function handler(request) {
   }
 
   const polyline = input?.polyline;
+  const homeLocation = validPoint(input?.homeLocation) ? input.homeLocation : null;
+  const stopLocations = Array.isArray(input?.stopLocations)
+    ? input.stopLocations.slice(0, 25).filter(validPoint)
+    : [];
   if (typeof polyline !== 'string' || polyline.length < 2 || polyline.length > 100000) {
     return json(400, { error: 'A valid route line is required.' });
   }
 
   let mapPolyline;
   try {
-    mapPolyline = reducePolylineForUrl(polyline, apiKey);
+    mapPolyline = reducePolylineForUrl(polyline, apiKey, homeLocation, stopLocations);
   } catch {
     return json(400, { error: 'The route line could not be displayed.' });
   }
@@ -163,7 +182,7 @@ export default async function handler(request) {
     });
   }
 
-  const mapResponse = await fetch(staticMapUrl(mapPolyline, apiKey));
+  const mapResponse = await fetch(staticMapUrl(mapPolyline, apiKey, homeLocation, stopLocations));
   const contentType = mapResponse.headers.get('content-type') || '';
 
   if (!mapResponse.ok || !contentType.startsWith('image/')) {
