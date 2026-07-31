@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#10231b">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>Admin | Trash Grab Express</title>
-  <link rel="stylesheet" href="admin.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js" defer></script>
-  <script src="admin.js" defer></script>
+  <link rel="stylesheet" href="admin.css?v=20260731-runner">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script src="admin.js?v=20260731-runner" defer></script>
 </head>
 <body>
   <main>
@@ -45,6 +46,7 @@
           <button data-status="scheduled"><span>◷</span> Scheduled</button>
           <button data-status="active"><span>↗</span> Active</button>
           <button data-status="completed"><span>✓</span> Completed</button>
+          <button type="button" id="runner-nav-button"><span>◆</span> Runner approvals</button>
           <button type="button" id="route-nav-button"><span>⌖</span> Route planner</button>
           <button type="button" id="profile-nav-button"><span>⌂</span> Home base</button>
         </nav>
@@ -66,6 +68,7 @@
           <article><span>New leads</span><strong id="stat-new">0</strong><small>Waiting for contact</small></article>
           <article><span>Scheduled</span><strong id="stat-scheduled">0</strong><small>Ready for service</small></article>
           <article><span>Active</span><strong id="stat-active">0</strong><small>Recurring customers</small></article>
+          <article><span>Runner applications</span><strong id="stat-runners">0</strong><small>Waiting for approval</small></article>
           <article><span>Total requests</span><strong id="stat-total">0</strong><small>All time</small></article>
         </div>
 
@@ -93,15 +96,20 @@
             </div>
             <section class="route-map-preview" id="route-map-preview" hidden aria-labelledby="route-map-title">
               <div class="route-map-toolbar">
-                <div><small id="route-map-engine">Google optimized route</small><strong id="route-map-title">Optimized pickup map</strong><span id="route-map-meta"></span></div>
+                <div class="route-map-heading">
+                  <small id="route-map-engine"><i aria-hidden="true"></i> Google optimized route</small>
+                  <strong id="route-map-title">Optimized pickup map</strong>
+                  <span id="route-map-meta"></span>
+                </div>
                 <button type="button" id="external-maps-button" hidden>Start navigation ↗</button>
               </div>
               <div class="route-map-frame">
                 <div id="route-map" aria-label="Interactive map of the optimized trash pickup route"></div>
                 <img id="route-map-image" hidden alt="Map preview of the optimized trash pickup route">
+                <div class="map-live-badge" aria-hidden="true"><i></i> Live route</div>
               </div>
               <ol id="route-map-legend" class="route-map-legend" aria-label="Optimized pickup stop details"></ol>
-              <p>Markers show Home Base and the optimized stopping order. Verify every address before starting navigation.</p>
+              <p class="route-map-note"><span aria-hidden="true">⌖</span> Markers show Home Base and the optimized stopping order. Verify every address before starting navigation.</p>
             </section>
           </div>
         </section>
@@ -117,6 +125,20 @@
               <tbody id="request-rows"></tbody>
             </table>
             <div class="empty-state" id="empty-state" hidden><span>✓</span><h3>Nothing waiting here</h3><p>Requests matching this view will appear automatically.</p></div>
+          </div>
+        </section>
+
+        <section class="runner-panel" id="runner-approvals">
+          <div class="panel-toolbar">
+            <div><p class="eyebrow">Black &amp; Blue crew</p><h2>Runner applications</h2><span id="runner-result-count">0 applications</span></div>
+            <p class="panel-note">Review every applicant before approving routes or referral earnings.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Applicant</th><th>Area</th><th>Availability</th><th>Referrals</th><th>Status</th><th>Applied</th><th></th></tr></thead>
+              <tbody id="runner-rows"></tbody>
+            </table>
+            <div class="empty-state" id="runner-empty-state" hidden><span>✓</span><h3>No runner applications yet</h3><p>New Black &amp; Blue crew applications will appear here.</p></div>
           </div>
         </section>
       </div>
@@ -140,6 +162,23 @@
         <button type="button" id="delete-request-button" class="danger-button">Delete pickup</button>
         <button type="submit" id="save-request-button">Save changes <span>→</span></button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="runner-dialog" class="runner-dialog">
+    <form method="dialog"><button class="close-button" aria-label="Close">×</button></form>
+    <div class="dialog-heading"><p class="eyebrow">Runner application</p><h2 id="runner-detail-name">Applicant</h2><span id="runner-detail-status" class="status-pill">Pending</span></div>
+    <div class="detail-grid">
+      <section><h3>Contact</h3><dl><div><dt>Email</dt><dd><a id="runner-detail-email"></a></dd></div><div><dt>Phone</dt><dd><a id="runner-detail-phone"></a></dd></div><div><dt>Service area</dt><dd id="runner-detail-area"></dd></div></dl></section>
+      <section><h3>Readiness</h3><dl><div><dt>Availability</dt><dd id="runner-detail-availability"></dd></div><div><dt>Reliable transportation</dt><dd id="runner-detail-transportation"></dd></div><div><dt>18 or older</dt><dd id="runner-detail-age"></dd></div><div><dt>Referral interest</dt><dd id="runner-detail-referrals"></dd></div></dl></section>
+    </div>
+    <section class="customer-notes"><h3>Applicant background</h3><p id="runner-detail-experience">No experience details provided.</p></section>
+    <form id="runner-update-form" class="update-form">
+      <label>Approval status<select name="status"><option value="pending">Pending</option><option value="reviewing">Reviewing</option><option value="approved">Approved</option><option value="rejected">Not approved</option></select></label>
+      <label>Private admin notes<textarea name="adminNotes" maxlength="2000" placeholder="Screening notes, route fit, follow-up details…"></textarea></label>
+      <p class="approval-reminder">Approving an application only makes the applicant eligible. Assign routes and confirm compensation terms separately.</p>
+      <p id="runner-update-error" class="form-error" role="alert" hidden></p>
+      <button type="submit" id="save-runner-button">Save application review <span>→</span></button>
     </form>
   </dialog>
 

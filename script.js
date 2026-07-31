@@ -83,6 +83,10 @@ const summary = document.querySelector('#request-summary');
 const copyButton = document.querySelector('#copy-summary');
 const submitButton = document.querySelector('#booking-submit');
 const errorMessage = document.querySelector('#booking-error');
+const runnerForm = document.querySelector('#runner-form');
+const runnerSubmitButton = document.querySelector('#runner-submit');
+const runnerErrorMessage = document.querySelector('#runner-error');
+const runnerDialog = document.querySelector('#runner-confirmation-dialog');
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -151,7 +155,7 @@ form.addEventListener('submit', async event => {
   submitButton.innerHTML = originalButtonText;
 });
 
-document.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
+document.querySelector('#confirmation-dialog .dialog-close').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => {
   if (event.target === dialog) dialog.close();
 });
@@ -162,6 +166,60 @@ copyButton.addEventListener('click', async () => {
   } catch {
     copyButton.textContent = 'Select and copy the summary above';
   }
+});
+
+runnerForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!runnerForm.reportValidity()) return;
+
+  const data = new FormData(runnerForm);
+  if (data.get('runnerWebsite')) return;
+
+  const application = {
+    first_name: String(data.get('runnerFirstName')).trim(),
+    last_name: String(data.get('runnerLastName')).trim(),
+    email: String(data.get('runnerEmail')).trim().toLowerCase(),
+    phone: String(data.get('runnerPhone')).trim(),
+    city: String(data.get('runnerCity')).trim(),
+    zip: String(data.get('runnerZip')).trim(),
+    availability: String(data.get('runnerAvailability')),
+    reliable_transportation: data.get('reliableTransportation') === 'on',
+    age_18_or_older: data.get('age18') === 'on',
+    referral_interest: data.get('referralInterest') === 'on',
+    experience: String(data.get('runnerExperience') || '').trim() || null
+  };
+
+  const originalButtonText = runnerSubmitButton.innerHTML;
+  runnerSubmitButton.disabled = true;
+  runnerSubmitButton.textContent = 'Submitting securely…';
+  runnerErrorMessage.hidden = true;
+
+  const { error } = await supabaseClient
+    .from('trash_grab_runner_applications')
+    .insert(application);
+
+  if (error) {
+    console.error('Unable to save runner application', { code: error.code, message: error.message });
+    runnerErrorMessage.textContent = 'We could not submit your application right now. Please check the details and try again.';
+    runnerErrorMessage.hidden = false;
+    runnerSubmitButton.disabled = false;
+    runnerSubmitButton.innerHTML = originalButtonText;
+    return;
+  }
+
+  runnerForm.reset();
+  runnerDialog.showModal();
+  runnerSubmitButton.disabled = false;
+  runnerSubmitButton.innerHTML = originalButtonText;
+});
+
+function closeRunnerDialog() {
+  runnerDialog.close();
+}
+document.querySelector('#runner-confirmation-dialog .dialog-close').addEventListener('click', closeRunnerDialog);
+document.querySelector('#close-runner-confirmation').addEventListener('click', closeRunnerDialog);
+runnerDialog.addEventListener('click', event => {
+  if (event.target === runnerDialog) closeRunnerDialog();
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();

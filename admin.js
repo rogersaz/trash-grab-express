@@ -32,10 +32,19 @@ const routeMapLegend = document.querySelector('#route-map-legend');
 const routeMapMeta = document.querySelector('#route-map-meta');
 const routeMapEngine = document.querySelector('#route-map-engine');
 const externalMapsButton = document.querySelector('#external-maps-button');
+const runnerRows = document.querySelector('#runner-rows');
+const runnerEmptyState = document.querySelector('#runner-empty-state');
+const runnerResultCount = document.querySelector('#runner-result-count');
+const runnerDialog = document.querySelector('#runner-dialog');
+const runnerUpdateForm = document.querySelector('#runner-update-form');
+const runnerUpdateError = document.querySelector('#runner-update-error');
+const saveRunnerButton = document.querySelector('#save-runner-button');
 
 let requests = [];
+let runnerApplications = [];
 let activeStatus = 'all';
 let selectedRequestId = null;
+let selectedRunnerId = null;
 let currentUser = null;
 let adminProfile = null;
 let routeOrder = [];
@@ -51,6 +60,13 @@ const statusLabels = {
   active: 'Active', completed: 'Completed', cancelled: 'Cancelled'
 };
 const planLabels = { weekly: 'Weekly', biweekly: 'Every other week', once: 'One time' };
+const runnerStatusLabels = {
+  pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Not approved'
+};
+const availabilityLabels = {
+  weekday_mornings: 'Weekday mornings', weekday_evenings: 'Weekday evenings',
+  weekends: 'Weekends', flexible: 'Flexible'
+};
 
 function showError(element, message) {
   element.textContent = message;
@@ -83,10 +99,11 @@ function makeStatus(status) {
 async function userIsAdmin(userId) {
   const { data, error } = await client
     .from('trash_grab_admins')
-    .select('user_id')
+    .select('user_id, active')
     .eq('user_id', userId)
+    .eq('active', true)
     .maybeSingle();
-  return !error && Boolean(data);
+  return !error && data?.active === true;
 }
 
 async function authorizeSession(session) {
@@ -102,7 +119,7 @@ async function authorizeSession(session) {
   const email = session.user.email || 'Administrator';
   document.querySelector('#user-email').textContent = email;
   document.querySelector('#user-avatar').textContent = email.charAt(0).toUpperCase();
-  await Promise.all([loadProfile(), loadRequests()]);
+  await Promise.all([loadProfile(), loadRequests(), loadRunnerApplications()]);
   return true;
 }
 
@@ -132,6 +149,7 @@ loginForm.addEventListener('submit', async event => {
 document.querySelector('#logout-button').addEventListener('click', async () => {
   await client.auth.signOut();
   requests = [];
+  runnerApplications = [];
   currentUser = null;
   adminProfile = null;
   dashboardView.hidden = true;
@@ -162,8 +180,130 @@ function updateStats() {
   document.querySelector('#stat-new').textContent = requests.filter(item => item.status === 'new').length;
   document.querySelector('#stat-scheduled').textContent = requests.filter(item => item.status === 'scheduled').length;
   document.querySelector('#stat-active').textContent = requests.filter(item => item.status === 'active').length;
+  document.querySelector('#stat-runners').textContent = runnerApplications.filter(item => item.status === 'pending').length;
   document.querySelector('#stat-total').textContent = requests.length;
 }
+
+async function loadRunnerApplications() {
+  runnerRows.replaceChildren();
+  runnerEmptyState.hidden = true;
+  const { data, error } = await client
+    .from('trash_grab_runner_applications')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    runnerEmptyState.hidden = false;
+    runnerEmptyState.querySelector('h3').textContent = 'Unable to load runner applications';
+    runnerEmptyState.querySelector('p').textContent = 'Refresh the page or check your administrator access.';
+    return;
+  }
+  runnerApplications = data || [];
+  updateStats();
+  renderRunnerApplications();
+}
+
+function makeRunnerStatus(status) {
+  const badge = document.createElement('span');
+  badge.className = `status-pill status-${status}`;
+  badge.textContent = runnerStatusLabels[status] || status;
+  return badge;
+}
+
+function renderRunnerApplications() {
+  runnerRows.replaceChildren();
+  runnerResultCount.textContent = `${runnerApplications.length} ${runnerApplications.length === 1 ? 'application' : 'applications'}`;
+  runnerEmptyState.hidden = runnerApplications.length !== 0;
+
+  runnerApplications.forEach(application => {
+    const row = document.createElement('tr');
+    const applicantCell = document.createElement('td');
+    const applicant = document.createElement('div');
+    applicant.className = 'customer-cell';
+    const name = document.createElement('strong');
+    name.textContent = `${application.first_name} ${application.last_name}`;
+    const email = document.createElement('span');
+    email.textContent = application.email;
+    applicant.append(name, email);
+    applicantCell.append(applicant);
+
+    const areaCell = makeCell(`${application.city}, AZ ${application.zip}`);
+    const availabilityCell = makeCell(availabilityLabels[application.availability] || application.availability);
+    const referralsCell = makeCell(application.referral_interest ? 'Interested' : 'Not selected');
+    const statusCell = document.createElement('td');
+    statusCell.append(makeRunnerStatus(application.status));
+    const createdCell = makeCell(formatDate(application.created_at, true));
+    const actionCell = document.createElement('td');
+    const reviewButton = document.createElement('button');
+    reviewButton.type = 'button';
+    reviewButton.className = 'view-button';
+    reviewButton.textContent = application.status === 'pending' ? 'Review' : 'View';
+    reviewButton.addEventListener('click', () => openRunnerApplication(application.id));
+    actionCell.append(reviewButton);
+
+    row.append(applicantCell, areaCell, availabilityCell, referralsCell, statusCell, createdCell, actionCell);
+    runnerRows.append(row);
+  });
+}
+
+function openRunnerApplication(id) {
+  const application = runnerApplications.find(item => item.id === id);
+  if (!application) return;
+  selectedRunnerId = id;
+  document.querySelector('#runner-detail-name').textContent = `${application.first_name} ${application.last_name}`;
+  const status = document.querySelector('#runner-detail-status');
+  status.className = `status-pill status-${application.status}`;
+  status.textContent = runnerStatusLabels[application.status] || application.status;
+
+  const email = document.querySelector('#runner-detail-email');
+  email.textContent = application.email;
+  email.href = `mailto:${application.email}`;
+  const phone = document.querySelector('#runner-detail-phone');
+  phone.textContent = application.phone;
+  phone.href = `tel:${application.phone.replace(/[^+0-9]/g, '')}`;
+  document.querySelector('#runner-detail-area').textContent = `${application.city}, AZ ${application.zip}`;
+  document.querySelector('#runner-detail-availability').textContent = availabilityLabels[application.availability] || application.availability;
+  document.querySelector('#runner-detail-transportation').textContent = application.reliable_transportation ? 'Confirmed' : 'No';
+  document.querySelector('#runner-detail-age').textContent = application.age_18_or_older ? 'Confirmed' : 'No';
+  document.querySelector('#runner-detail-referrals').textContent = application.referral_interest ? 'Interested' : 'Not selected';
+  document.querySelector('#runner-detail-experience').textContent = application.experience || 'No experience details provided.';
+  runnerUpdateForm.elements.status.value = application.status;
+  runnerUpdateForm.elements.adminNotes.value = application.admin_notes || '';
+  clearError(runnerUpdateError);
+  runnerDialog.showModal();
+}
+
+runnerUpdateForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!currentUser || !selectedRunnerId) return;
+  clearError(runnerUpdateError);
+  saveRunnerButton.disabled = true;
+  saveRunnerButton.textContent = 'Saving…';
+  const data = new FormData(runnerUpdateForm);
+  const now = new Date().toISOString();
+  const { error } = await client
+    .from('trash_grab_runner_applications')
+    .update({
+      status: String(data.get('status')),
+      admin_notes: String(data.get('adminNotes') || '').trim() || null,
+      reviewed_by: currentUser.id,
+      reviewed_at: now,
+      updated_at: now
+    })
+    .eq('id', selectedRunnerId);
+
+  if (error) {
+    showError(runnerUpdateError, 'The application review could not be saved. Please try again.');
+    saveRunnerButton.disabled = false;
+    saveRunnerButton.innerHTML = 'Save application review <span>→</span>';
+    return;
+  }
+  runnerDialog.close();
+  selectedRunnerId = null;
+  await loadRunnerApplications();
+  saveRunnerButton.disabled = false;
+  saveRunnerButton.innerHTML = 'Save application review <span>→</span>';
+});
 
 function filteredRequests() {
   const query = searchInput.value.trim().toLowerCase();
@@ -229,7 +369,7 @@ document.querySelectorAll('.sidebar nav button[data-status]').forEach(button => 
   });
 });
 searchInput.addEventListener('input', renderRequests);
-document.querySelector('#refresh-button').addEventListener('click', loadRequests);
+document.querySelector('#refresh-button').addEventListener('click', () => Promise.all([loadRequests(), loadRunnerApplications()]));
 
 function openRequest(id) {
   const request = requests.find(item => item.id === id);
@@ -691,9 +831,30 @@ async function showInteractiveMap(result, optimizedStops, token) {
   new maps.Polyline({
     path,
     map: routeMapInstance,
+    strokeColor: '#ffffff',
+    strokeOpacity: 0.92,
+    strokeWeight: 10,
+    zIndex: 1
+  });
+  new maps.Polyline({
+    path,
+    map: routeMapInstance,
     strokeColor: '#235340',
-    strokeOpacity: 0.95,
-    strokeWeight: 6
+    strokeOpacity: 1,
+    strokeWeight: 6,
+    zIndex: 2,
+    icons: [{
+      icon: {
+        path: maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        scale: 2.2,
+        fillColor: '#ffcf25',
+        fillOpacity: 1,
+        strokeColor: '#10231b',
+        strokeWeight: 1
+      },
+      offset: '6%',
+      repeat: '12%'
+    }]
   });
 
   const infoWindow = new maps.InfoWindow();
@@ -865,6 +1026,12 @@ document.querySelector('#route-nav-button').addEventListener('click', event => {
   routePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   routeDate.focus({ preventScroll: true });
   history.replaceState(null, '', '#route-planner');
+});
+document.querySelector('#runner-nav-button').addEventListener('click', event => {
+  const runnerPanel = document.querySelector('#runner-approvals');
+  activateNavigation(event.currentTarget);
+  runnerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  history.replaceState(null, '', '#runner-approvals');
 });
 const localToday = new Date();
 localToday.setMinutes(localToday.getMinutes() - localToday.getTimezoneOffset());

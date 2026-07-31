@@ -21,6 +21,7 @@ async function authorizedAdmin(request) {
   if (!user?.id) return false;
   const query = new URLSearchParams({
     user_id: `eq.${user.id}`,
+    active: 'eq.true',
     select: 'user_id',
     limit: '1'
   });

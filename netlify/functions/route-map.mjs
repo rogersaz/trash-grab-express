@@ -131,6 +131,7 @@ async function authorizedAdmin(request) {
 
   const query = new URLSearchParams({
     user_id: `eq.${user.id}`,
+    active: 'eq.true',
     select: 'user_id',
     limit: '1'
   });
@@ -145,6 +146,8 @@ async function authorizedAdmin(request) {
 
 export default async function handler(request) {
   if (request.method !== 'POST') return json(405, { error: 'Method not allowed.' });
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > 150_000) return json(413, { error: 'Request is too large.' });
   if (!(await authorizedAdmin(request))) {
     return json(401, { error: 'Administrator sign-in required.' });
   }
