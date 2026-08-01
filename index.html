@@ -3,43 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Trash Grab Express provides reliable trash bin curb-and-return service in Surprise, AZ. Schedule weekly service, vacation coverage, or a one-time pickup." />
+  <meta name="description" content="Trash Grab Express offers weekly trash can-to-curb and return service in Surprise, AZ, plus vacation coverage and flexible plans." />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <meta name="geo.region" content="US-AZ" />
   <meta name="geo.placename" content="Surprise" />
   <meta name="theme-color" content="#10231b" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Trash Grab Express" />
-  <meta property="og:title" content="Trash Bin Curb Service in Surprise, AZ | Trash Grab Express" />
-  <meta property="og:description" content="Local curb-and-return trash bin service for Surprise, Arizona. Reliable weekly help, vacation coverage, and no long-term contracts." />
+  <meta property="og:title" content="Trash Can to Curb Service Surprise AZ | Trash Grab Express" />
+  <meta property="og:description" content="Weekly trash can curb-and-return service for Surprise, Arizona homes, with vacation coverage and flexible plans." />
   <meta property="og:url" content="https://trashgrab.app/" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Trash Bin Curb Service in Surprise, AZ | Trash Grab Express" />
-  <meta name="twitter:description" content="Reliable curb-and-return trash bin service for homes in Surprise, Arizona." />
+  <meta name="twitter:title" content="Trash Can to Curb Service Surprise AZ | Trash Grab Express" />
+  <meta name="twitter:description" content="Weekly trash can curb-and-return service for homes in Surprise, Arizona." />
   <link rel="canonical" href="https://trashgrab.app/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <title>Trash Bin Curb Service in Surprise, AZ | Trash Grab Express</title>
-  <link rel="stylesheet" href="styles.css?v=20260731-portal" />
+  <title>Trash Can to Curb Service Surprise AZ | Trash Grab Express</title>
+  <link rel="stylesheet" href="styles.css?v=20260731-seo" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script src="script.js?v=20260731-runner" defer></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Trash Grab Express",
-      "url": "https://trashgrab.app/",
-      "description": "Trash bin curb-and-return service for homes in Surprise, Arizona.",
-      "areaServed": {
-        "@type": "City",
-        "name": "Surprise",
-        "containedInPlace": { "@type": "State", "name": "Arizona" }
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Surprise",
-        "addressRegion": "AZ",
-        "addressCountry": "US"
-      }
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://trashgrab.app/#website",
+          "url": "https://trashgrab.app/",
+          "name": "Trash Grab Express",
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://trashgrab.app/#business",
+          "name": "Trash Grab Express",
+          "url": "https://trashgrab.app/",
+          "description": "Weekly trash can-to-curb and return service for homes in Surprise, Arizona, including vacation coverage and flexible plans.",
+          "priceRange": "$",
+          "areaServed": {
+            "@type": "City",
+            "name": "Surprise",
+            "containedInPlace": { "@type": "State", "name": "Arizona" }
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Surprise",
+            "addressRegion": "AZ",
+            "addressCountry": "US"
+          },
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Trash can curb services",
+            "itemListElement": [
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Weekly trash can curb-and-return service",
+                  "serviceType": "Trash can to curb service",
+                  "areaServed": "Surprise, Arizona"
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Vacation trash bin service",
+                  "serviceType": "Trash bin service while out of town",
+                  "areaServed": "Surprise, Arizona"
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
   </script>
 </head>
@@ -70,8 +107,8 @@
       <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
       <div class="hero-copy reveal">
         <p class="eyebrow"><span></span> Proudly serving Surprise, Arizona</p>
-        <h1>We grab the cans.<br><em>You reclaim your day.</em></h1>
-        <p class="hero-lede">Never miss trash day again. We roll your bins to the curb, return them after collection, and keep curbside service in Surprise, AZ ridiculously simple.</p>
+        <h1>Trash can to curb service <br><em>in Surprise, AZ.</em></h1>
+        <p class="hero-lede">Need someone to take your trash cans out? We roll your bins to the curb before collection, return them afterward, and make weekly trash can service simple.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="#estimate">Get an instant estimate <span>→</span></a>
           <a class="button button-ghost" href="#how-it-works"><span class="play">▶</span> See how it works</a>
@@ -116,14 +153,27 @@
 
     <section class="section services" id="services">
       <div class="section-heading reveal">
-        <p class="eyebrow"><span></span> Built around your routine</p>
-        <h2>One less chore.<br><em>A lot more peace of mind.</em></h2>
-        <p>Pick the help you need today. Change it whenever life changes.</p>
+        <p class="eyebrow"><span></span> Local help for trash day</p>
+        <h2>Weekly trash can service.<br><em>One less chore.</em></h2>
+        <p>Flexible curb-and-return help for busy households, seniors, and Surprise neighbors traveling out of town.</p>
       </div>
       <div class="service-grid">
-        <article class="service-card reveal"><span class="service-number">01</span><div class="service-icon">↗</div><h3>Curb & return</h3><p>We take your bins out before collection and bring them back after the truck passes.</p><a href="#estimate">Estimate service <span>→</span></a></article>
-        <article class="service-card featured reveal"><span class="popular">Most popular</span><span class="service-number">02</span><div class="service-icon">⌁</div><h3>Recurring care</h3><p>Weekly, twice-monthly, or custom scheduling so trash day stays off your to-do list.</p><a href="#estimate">Build your plan <span>→</span></a></article>
-        <article class="service-card reveal"><span class="service-number">03</span><div class="service-icon">☀</div><h3>Vacation coverage</h3><p>Leave town without leaving full bins behind. We keep your routine moving while you're away.</p><a href="#book">Request coverage <span>→</span></a></article>
+        <article class="service-card reveal"><span class="service-number">01</span><div class="service-icon">↗</div><h3>Trash can curb &amp; return</h3><p>We take your trash cans to the curb before collection and bring them back after the truck passes.</p><a href="#estimate">Estimate service <span>→</span></a></article>
+        <article class="service-card featured reveal"><span class="popular">Most popular</span><span class="service-number">02</span><div class="service-icon">⌁</div><h3>Weekly curb service</h3><p>Reliable weekly, twice-monthly, or custom trash can service so collection day stays off your to-do list.</p><a href="#estimate">Build your plan <span>→</span></a></article>
+        <article class="service-card reveal"><span class="service-number">03</span><div class="service-icon">☀</div><h3>Vacation bin service</h3><p>Going out of town? We move and return your trash bins so your regular collection schedule keeps moving.</p><a href="#book">Request coverage <span>→</span></a></article>
+      </div>
+    </section>
+
+    <section class="section local-service" id="surprise-trash-can-service">
+      <div class="section-heading reveal">
+        <p class="eyebrow"><span></span> Serving Surprise, Arizona</p>
+        <h2>Need help taking trash bins<br><em>to the curb?</em></h2>
+        <p>Trash Grab Express is a local residential trash can valet service. We move accessible household bins to the curb and return them after collection—without hauling trash or replacing your city service.</p>
+      </div>
+      <div class="local-service-grid">
+        <article class="reveal"><strong>01</strong><h3>Trash can service for seniors</h3><p>Dependable curb help for older adults, people with limited mobility, caregivers, and family members arranging support.</p></article>
+        <article class="reveal"><strong>02</strong><h3>Service while you’re out of town</h3><p>Vacation coverage keeps your bins moving on collection day even when you are traveling or away from home.</p></article>
+        <article class="reveal"><strong>03</strong><h3>Affordable, flexible plans</h3><p>Choose recurring or one-time curb service based on your household, bin count, schedule, and access needs.</p></article>
       </div>
     </section>
 
@@ -259,6 +309,9 @@
     <section class="section faq" id="faq">
       <div class="section-heading reveal"><p class="eyebrow"><span></span> Good questions</p><h2>Everything you need<br>to know <em>before pickup.</em></h2></div>
       <div class="accordion reveal">
+        <details><summary>Can you take my trash cans to the curb every week?<span>+</span></summary><p>Yes. Weekly trash can curb service is our most popular option. We move accessible bins out before collection and can return them after the truck passes.</p></details>
+        <details><summary>Do you offer trash can service for seniors in Surprise?<span>+</span></summary><p>Yes. Our Surprise, AZ curb-and-return service can help seniors, residents with limited mobility, caregivers, and busy households manage collection day.</p></details>
+        <details><summary>Can you move my trash bins while I’m out of town?<span>+</span></summary><p>Yes. Vacation trash bin service is available for Surprise homes so your normal collection routine can continue while you are away.</p></details>
         <details><summary>What happens if my collection day changes?<span>+</span></summary><p>Update your request with the new day. Once service is confirmed, schedule-change instructions will be included with your plan.</p></details>
         <details><summary>Do I need to be home?<span>+</span></summary><p>No. As long as the bins are accessible, service can be completed without anyone home.</p></details>
         <details><summary>Can you handle more than four bins?<span>+</span></summary><p>Absolutely. Choose “4+ bins” in the estimator and add the exact count in your booking notes for a custom quote.</p></details>
@@ -269,7 +322,7 @@
 
   <footer>
     <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M14 15h20l-2 25H16L14 15Zm4-7h12l2 4H16l2-4Zm-7 4h26v4H11v-4Z"/></svg></span><span>Trash Grab <strong>Express</strong></span></a>
-    <p>Fast help. Clean curb. Zero hassle.</p>
+    <p>Local trash can curb service in Surprise, Arizona.</p>
     <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#faq">FAQ</a><a href="#book">Book</a></div>
     <aside class="footer-sale"><strong>TrashGrab.app domain &amp; business concept available</strong><span>The domain and this local-service idea are offered for sale. Serious acquisition inquiries are welcome.</span></aside>
     <small>© <span id="year"></span> Trash Grab Express. All rights reserved.</small>
