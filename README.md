@@ -12,6 +12,8 @@ A responsive service website with a Supabase-backed customer-request system and 
 - public Black & Blue Trash Bin Runner application and referral-interest form
 - protected admin login and request-management dashboard
 - admin-only runner application review and approval queue
+- personal magic-link runner portal showing only each approved runner's assigned pickup dates, addresses, map stops, and runner-safe notes
+- administrator controls for sending runner invitations and assigning or removing pickup stops
 - status filters, private admin notes, and request updates
 - Google Route Optimization API with automatic Routes waypoint-optimization fallback
 - up to 25 selected pickups with optimized stopping order
@@ -24,13 +26,15 @@ A responsive service website with a Supabase-backed customer-request system and 
 
 ## Admin
 
-The dashboard is available at `/admin.html`. A Supabase Auth user must also be explicitly added to `public.trash_grab_admins`; having an account alone does not grant access. Approved administrators can review runner applications and set each applicant to pending, reviewing, approved, or not approved.
+The dashboard is available at `/admin.html`. A Supabase Auth user must also be explicitly added to `public.trash_grab_admins`; having an account alone does not grant access. Approved administrators can review runner applications, approve a runner, send the secure portal invitation, and assign runner-safe pickup snapshots.
+
+Approved runners use `/runner.html`. The portal sends a passwordless magic link only to an existing invited account. Each runner can read only their own active assignments through Row Level Security. Assignment snapshots intentionally omit customer email, phone, customer notes, and private administrator notes.
 
 The runner program is presented as an application, not a promise of employment or guaranteed earnings. Each referred household's monthly price includes a $4 processing fee; route pay, referral commissions, eligibility, and payment timing belong in the separate runner agreement.
 
 ## Security model
 
-Anonymous visitors can insert service requests and runner applications but cannot read either table. Applicant-controlled inserts cannot set approval or review fields. Only active allowlisted admins can read or update requests and applications. Never place a Supabase service-role or secret key in this repository.
+Anonymous visitors can insert service requests and runner applications but cannot read either table. Applicant-controlled inserts cannot set approval or review fields. Only active allowlisted admins can read or update requests and applications. Approved runners can select only the profile linked to their verified Auth user and only assignments belonging to that profile. The invitation Edge Function keeps the service-role key inside Supabase and verifies the caller against the administrator allowlist. Never place a Supabase service-role or secret key in this repository.
 
 Before production use, enable MFA for every allowlisted administrator, review the Supabase Security Advisor, and keep the Google browser key restricted to `https://trashgrab.app/*`. The public publishable key is intentionally visible; RLS and explicit database grants are the security boundary.
 

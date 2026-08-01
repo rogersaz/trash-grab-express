@@ -11,7 +11,7 @@ function json(status, body) {
   });
 }
 
-async function authorizedAdmin(request) {
+async function authorizedMapUser(request) {
   const authorization = request.headers.get('authorization') || '';
   if (!authorization.startsWith('Bearer ')) return false;
   const headers = { apikey: SUPABASE_PUBLISHABLE_KEY, authorization };
@@ -19,21 +19,33 @@ async function authorizedAdmin(request) {
   if (!userResponse.ok) return false;
   const user = await userResponse.json();
   if (!user?.id) return false;
-  const query = new URLSearchParams({
+  const adminQuery = new URLSearchParams({
     user_id: `eq.${user.id}`,
     active: 'eq.true',
     select: 'user_id',
     limit: '1'
   });
-  const adminResponse = await fetch(`${SUPABASE_URL}/rest/v1/trash_grab_admins?${query}`, { headers });
-  if (!adminResponse.ok) return false;
-  const admins = await adminResponse.json();
-  return Array.isArray(admins) && admins.length === 1;
+  const runnerQuery = new URLSearchParams({
+    auth_user_id: `eq.${user.id}`,
+    active: 'eq.true',
+    select: 'id',
+    limit: '1'
+  });
+  const [adminResponse, runnerResponse] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/trash_grab_admins?${adminQuery}`, { headers }),
+    fetch(`${SUPABASE_URL}/rest/v1/trash_grab_runners?${runnerQuery}`, { headers })
+  ]);
+  if (!adminResponse.ok || !runnerResponse.ok) return false;
+  const [admins, runners] = await Promise.all([adminResponse.json(), runnerResponse.json()]);
+  return (Array.isArray(admins) && admins.length === 1) ||
+    (Array.isArray(runners) && runners.length === 1);
 }
 
 export default async function handler(request) {
   if (request.method !== 'GET') return json(405, { error: 'Method not allowed.' });
-  if (!(await authorizedAdmin(request))) return json(401, { error: 'Administrator sign-in required.' });
+  if (!(await authorizedMapUser(request))) {
+    return json(401, { error: 'Approved dashboard sign-in required.' });
+  }
 
   const apiKey = process.env.GOOGLE_MAPS_BROWSER_API_KEY;
   if (!apiKey) return json(503, { error: 'Interactive Google Maps is not configured.' });

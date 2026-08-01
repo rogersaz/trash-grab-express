@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#07131f">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>Runner Portal | Trash Grab Express</title>
+  <link rel="stylesheet" href="runner.css?v=20260731-portal">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script src="runner.js?v=20260731-portal" defer></script>
+</head>
+<body>
+  <main>
+    <section class="runner-login" id="runner-login-view">
+      <div class="login-story">
+        <a class="brand" href="index.html"><span class="brand-mark">◆</span><span>Black &amp; Blue <strong>Runner</strong></span></a>
+        <div>
+          <p class="eyebrow">Approved crew access</p>
+          <h1>Your route.<br><em>Your stops.</em></h1>
+          <p>See the pickup dates, runner-safe instructions, and map locations assigned specifically to you.</p>
+        </div>
+        <small>Route access is private and protected by your verified email account.</small>
+      </div>
+
+      <form class="login-card" id="runner-login-form">
+        <div class="shield">◆</div>
+        <p class="eyebrow">Black &amp; Blue portal</p>
+        <h2>Open your route board</h2>
+        <p>Enter the approved email address used on your runner application. We’ll send a secure sign-in link—no password needed.</p>
+        <label>Email address<input type="email" name="email" autocomplete="email" required placeholder="runner@example.com"></label>
+        <p class="form-message" id="runner-login-message" role="status" hidden></p>
+        <p class="form-error" id="runner-login-error" role="alert" hidden></p>
+        <button type="submit" id="runner-login-button">Email my secure link <span>→</span></button>
+        <small>Only runners approved by Trash Grab Express can access route information.</small>
+        <a href="index.html#earn" class="back-link">← Return to the runner program</a>
+      </form>
+    </section>
+
+    <section class="runner-dashboard" id="runner-dashboard-view" hidden>
+      <header class="topbar">
+        <a class="brand" href="index.html"><span class="brand-mark">◆</span><span>Black &amp; Blue <strong>Runner</strong></span></a>
+        <div class="runner-account"><span id="runner-email">Runner</span><button type="button" id="runner-logout-button">Sign out</button></div>
+      </header>
+
+      <div class="runner-workspace">
+        <section class="welcome-card">
+          <div>
+            <p class="eyebrow">Personal route board</p>
+            <h1>Ready, <span id="runner-first-name">Runner</span>?</h1>
+            <p>Your board only shows stops assigned to your approved account.</p>
+          </div>
+          <div class="runner-badge"><span>◆</span><div><small>Account status</small><strong>Approved runner</strong></div></div>
+        </section>
+
+        <section class="runner-stats" aria-label="Route summary">
+          <article><span>Next pickup</span><strong id="runner-stat-next">—</strong><small>Your earliest assigned date</small></article>
+          <article><span>Stops that day</span><strong id="runner-stat-stops">0</strong><small>Ordered for your route</small></article>
+          <article><span>Upcoming</span><strong id="runner-stat-upcoming">0</strong><small>All assigned stops</small></article>
+        </section>
+
+        <section class="route-board">
+          <div class="route-toolbar">
+            <div><p class="eyebrow">Assigned route</p><h2>Pickup locations</h2><p>Select a date to see the addresses and instructions assigned to you.</p></div>
+            <label>Pickup date<select id="runner-date-select" aria-label="Pickup date"></select></label>
+          </div>
+
+          <div class="route-grid">
+            <section class="runner-map-card" aria-labelledby="runner-map-title">
+              <div class="map-heading"><div><small><i></i> Private route map</small><h3 id="runner-map-title">Assigned stops</h3></div><a id="runner-navigation-link" target="_blank" rel="noopener" hidden>Open route in Google Maps ↗</a></div>
+              <div class="runner-map" id="runner-map" aria-label="Map of your assigned trash pickup locations">
+                <div class="map-placeholder" id="runner-map-placeholder"><span>⌖</span><strong>Your assigned map will appear here</strong><small>Choose a pickup date with assigned stops.</small></div>
+              </div>
+              <p class="map-status" id="runner-map-status" role="status"></p>
+            </section>
+
+            <section class="stop-panel" aria-labelledby="runner-stop-title">
+              <div class="stop-heading"><div><p class="eyebrow">Stop details</p><h3 id="runner-stop-title">Your route</h3></div><span id="runner-stop-count">0 stops</span></div>
+              <ol class="runner-stop-list" id="runner-stop-list"></ol>
+              <div class="runner-empty" id="runner-empty-state" hidden><span>✓</span><h3>No stops assigned</h3><p>Your approved routes will appear here when an administrator assigns them.</p></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="privacy-note"><span>✓</span><div><strong>Only use route details for assigned Trash Grab work.</strong><p>Addresses and instructions are private. Do not copy, share, or use them outside the approved pickup.</p></div></section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

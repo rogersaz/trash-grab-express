@@ -39,12 +39,22 @@ const runnerDialog = document.querySelector('#runner-dialog');
 const runnerUpdateForm = document.querySelector('#runner-update-form');
 const runnerUpdateError = document.querySelector('#runner-update-error');
 const saveRunnerButton = document.querySelector('#save-runner-button');
+const runnerAccessSection = document.querySelector('#runner-access-section');
+const runnerAccessStatus = document.querySelector('#runner-access-status');
+const inviteRunnerButton = document.querySelector('#invite-runner-button');
+const runnerAssignmentForm = document.querySelector('#runner-assignment-form');
+const runnerAssignmentError = document.querySelector('#runner-assignment-error');
+const assignRunnerStopButton = document.querySelector('#assign-runner-stop-button');
+const runnerAssignmentList = document.querySelector('#runner-assignment-list');
+const runnerAssignmentEmpty = document.querySelector('#runner-assignment-empty');
 
 let requests = [];
 let runnerApplications = [];
 let activeStatus = 'all';
 let selectedRequestId = null;
 let selectedRunnerId = null;
+let selectedRunnerProfile = null;
+let runnerAssignments = [];
 let currentUser = null;
 let adminProfile = null;
 let routeOrder = [];
@@ -150,6 +160,8 @@ document.querySelector('#logout-button').addEventListener('click', async () => {
   await client.auth.signOut();
   requests = [];
   runnerApplications = [];
+  selectedRunnerProfile = null;
+  runnerAssignments = [];
   currentUser = null;
   adminProfile = null;
   dashboardView.hidden = true;
@@ -246,10 +258,15 @@ function renderRunnerApplications() {
   });
 }
 
-function openRunnerApplication(id) {
+async function openRunnerApplication(id) {
   const application = runnerApplications.find(item => item.id === id);
   if (!application) return;
   selectedRunnerId = id;
+  selectedRunnerProfile = null;
+  runnerAssignments = [];
+  runnerAccessSection.hidden = true;
+  runnerAssignmentList.replaceChildren();
+  clearError(runnerAssignmentError);
   document.querySelector('#runner-detail-name').textContent = `${application.first_name} ${application.last_name}`;
   const status = document.querySelector('#runner-detail-status');
   status.className = `status-pill status-${application.status}`;
@@ -270,7 +287,8 @@ function openRunnerApplication(id) {
   runnerUpdateForm.elements.status.value = application.status;
   runnerUpdateForm.elements.adminNotes.value = application.admin_notes || '';
   clearError(runnerUpdateError);
-  runnerDialog.showModal();
+  if (!runnerDialog.open) runnerDialog.showModal();
+  if (application.status === 'approved') await loadRunnerAccess(application);
 }
 
 runnerUpdateForm.addEventListener('submit', async event => {
@@ -280,11 +298,12 @@ runnerUpdateForm.addEventListener('submit', async event => {
   saveRunnerButton.disabled = true;
   saveRunnerButton.textContent = 'Saving…';
   const data = new FormData(runnerUpdateForm);
+  const nextStatus = String(data.get('status'));
   const now = new Date().toISOString();
   const { error } = await client
     .from('trash_grab_runner_applications')
     .update({
-      status: String(data.get('status')),
+      status: nextStatus,
       admin_notes: String(data.get('adminNotes') || '').trim() || null,
       reviewed_by: currentUser.id,
       reviewed_at: now,
@@ -298,12 +317,207 @@ runnerUpdateForm.addEventListener('submit', async event => {
     saveRunnerButton.innerHTML = 'Save application review <span>→</span>';
     return;
   }
-  runnerDialog.close();
-  selectedRunnerId = null;
+  const applicationId = selectedRunnerId;
   await loadRunnerApplications();
   saveRunnerButton.disabled = false;
   saveRunnerButton.innerHTML = 'Save application review <span>→</span>';
+  if (nextStatus === 'approved') {
+    await openRunnerApplication(applicationId);
+  } else {
+    runnerDialog.close();
+    selectedRunnerId = null;
+    selectedRunnerProfile = null;
+    runnerAssignments = [];
+  }
 });
+
+function runnerStopLabel(request) {
+  const lastInitial = String(request.last_name || '').trim().charAt(0).toUpperCase();
+  return `${request.first_name}${lastInitial ? ` ${lastInitial}.` : ''} pickup`;
+}
+
+function fullServiceAddress(request) {
+  const address = String(request.address || '').trim();
+  const alreadyIncludesCity = /surprise|\baz\b/i.test(address);
+  return alreadyIncludesCity
+    ? `${address}${request.zip && !address.includes(request.zip) ? `, ${request.zip}` : ''}`
+    : `${address}, Surprise, AZ ${request.zip}`;
+}
+
+function populateRunnerPickupOptions() {
+  const select = runnerAssignmentForm.elements.serviceRequest;
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Choose a scheduled customer';
+  select.replaceChildren(placeholder);
+  const eligible = requests.filter(request => ['scheduled', 'active'].includes(request.status));
+  eligible.forEach(request => {
+    const option = document.createElement('option');
+    option.value = request.id;
+    option.textContent = `${request.first_name} ${request.last_name} — ${formatDate(request.preferred_start_date)} — ${request.address}`;
+    select.append(option);
+  });
+  select.disabled = eligible.length === 0;
+  assignRunnerStopButton.disabled = eligible.length === 0 || !selectedRunnerProfile;
+  if (eligible.length) {
+    select.value = eligible[0].id;
+    runnerAssignmentForm.elements.pickupDate.value = eligible[0].preferred_start_date;
+  }
+}
+
+function renderRunnerAssignments() {
+  runnerAssignmentList.replaceChildren();
+  document.querySelector('#runner-assignment-count').textContent =
+    `${runnerAssignments.length} ${runnerAssignments.length === 1 ? 'assignment' : 'assignments'}`;
+  runnerAssignmentEmpty.hidden = runnerAssignments.length !== 0;
+
+  runnerAssignments.forEach(assignment => {
+    const item = document.createElement('li');
+    const date = document.createElement('span');
+    date.className = 'assignment-date';
+    date.textContent = formatDate(assignment.pickup_date);
+    const details = document.createElement('div');
+    const label = document.createElement('strong');
+    label.textContent = `${assignment.sequence_order}. ${assignment.stop_label}`;
+    const address = document.createElement('span');
+    address.textContent = assignment.service_address;
+    const meta = document.createElement('small');
+    meta.textContent = `${assignment.pickup_window} · ${assignment.bin_count} ${assignment.bin_count === 1 ? 'bin' : 'bins'}`;
+    details.append(label, address, meta);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Remove';
+    remove.addEventListener('click', () => removeRunnerAssignment(assignment.id));
+    item.append(date, details, remove);
+    runnerAssignmentList.append(item);
+  });
+}
+
+async function loadRunnerAccess(application) {
+  runnerAccessSection.hidden = false;
+  runnerAccessStatus.textContent = 'Loading the approved runner profile…';
+  inviteRunnerButton.disabled = true;
+  populateRunnerPickupOptions();
+
+  const { data: profile, error: profileError } = await client
+    .from('trash_grab_runners')
+    .select('id, application_id, auth_user_id, email, active, invited_at, approved_at')
+    .eq('application_id', application.id)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    selectedRunnerProfile = null;
+    runnerAccessStatus.textContent = 'The runner profile is still being created. Refresh once, then reopen this application.';
+    populateRunnerPickupOptions();
+    return;
+  }
+
+  selectedRunnerProfile = profile;
+  inviteRunnerButton.disabled = Boolean(profile.auth_user_id) || !profile.active;
+  inviteRunnerButton.textContent = profile.auth_user_id ? 'Account linked' : 'Send secure invite';
+  runnerAccessStatus.textContent = profile.auth_user_id
+    ? `Private portal linked to ${profile.email}. The runner can request a secure sign-in link at any time.`
+    : profile.invited_at
+      ? `Invitation last sent ${formatDate(profile.invited_at, true)}. The account will link when the runner accepts it.`
+      : `Approved for a private portal. Send the secure invitation to ${profile.email}.`;
+  populateRunnerPickupOptions();
+
+  const { data: assigned, error: assignmentError } = await client
+    .from('trash_grab_runner_assignments')
+    .select('*')
+    .eq('runner_id', profile.id)
+    .order('pickup_date', { ascending: true })
+    .order('sequence_order', { ascending: true });
+
+  if (assignmentError) {
+    runnerAssignments = [];
+    showError(runnerAssignmentError, 'Assigned stops could not be loaded. Refresh and try again.');
+  } else {
+    runnerAssignments = assigned || [];
+  }
+  renderRunnerAssignments();
+}
+
+runnerAssignmentForm.elements.serviceRequest.addEventListener('change', event => {
+  const request = requests.find(item => item.id === event.target.value);
+  if (request) runnerAssignmentForm.elements.pickupDate.value = request.preferred_start_date;
+});
+
+inviteRunnerButton.addEventListener('click', async () => {
+  const application = runnerApplications.find(item => item.id === selectedRunnerId);
+  if (!application || !selectedRunnerProfile) return;
+  clearError(runnerAssignmentError);
+  inviteRunnerButton.disabled = true;
+  inviteRunnerButton.textContent = 'Sending invitation…';
+  const { data, error } = await client.functions.invoke('trash-grab-invite-runner', {
+    body: { applicationId: application.id }
+  });
+  if (error || data?.error) {
+    showError(runnerAssignmentError, data?.error || 'The secure runner invitation could not be sent.');
+    inviteRunnerButton.disabled = false;
+    inviteRunnerButton.textContent = 'Send secure invite';
+    return;
+  }
+  runnerAccessStatus.textContent = data.message || 'Runner invitation sent.';
+  await loadRunnerAccess(application);
+});
+
+runnerAssignmentForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!currentUser || !selectedRunnerProfile || !runnerAssignmentForm.reportValidity()) return;
+  clearError(runnerAssignmentError);
+  const data = new FormData(runnerAssignmentForm);
+  const request = requests.find(item => item.id === data.get('serviceRequest'));
+  if (!request) {
+    showError(runnerAssignmentError, 'Choose a valid scheduled pickup request.');
+    return;
+  }
+
+  assignRunnerStopButton.disabled = true;
+  assignRunnerStopButton.textContent = 'Assigning pickup…';
+  const now = new Date().toISOString();
+  const { error } = await client
+    .from('trash_grab_runner_assignments')
+    .insert({
+      runner_id: selectedRunnerProfile.id,
+      service_request_id: request.id,
+      pickup_date: String(data.get('pickupDate')),
+      pickup_window: String(data.get('pickupWindow')),
+      stop_label: runnerStopLabel(request),
+      service_address: fullServiceAddress(request),
+      bin_count: request.bin_count,
+      runner_notes: String(data.get('runnerNotes') || '').trim() || null,
+      sequence_order: Number(data.get('sequenceOrder')),
+      assigned_by: currentUser.id,
+      updated_at: now
+    });
+
+  if (error) {
+    showError(runnerAssignmentError, 'This pickup could not be assigned. Check the date and try again.');
+  } else {
+    runnerAssignmentForm.elements.runnerNotes.value = '';
+    runnerAssignmentForm.elements.sequenceOrder.value = String(runnerAssignments.length + 2);
+    const application = runnerApplications.find(item => item.id === selectedRunnerId);
+    if (application) await loadRunnerAccess(application);
+  }
+  assignRunnerStopButton.disabled = false;
+  assignRunnerStopButton.innerHTML = 'Assign this pickup <span>→</span>';
+});
+
+async function removeRunnerAssignment(id) {
+  const assignment = runnerAssignments.find(item => item.id === id);
+  if (!assignment || !window.confirm(`Remove ${assignment.stop_label} from this runner's route?`)) return;
+  const { error } = await client
+    .from('trash_grab_runner_assignments')
+    .delete()
+    .eq('id', id);
+  if (error) {
+    showError(runnerAssignmentError, 'The assigned pickup could not be removed.');
+    return;
+  }
+  const application = runnerApplications.find(item => item.id === selectedRunnerId);
+  if (application) await loadRunnerAccess(application);
+}
 
 function filteredRequests() {
   const query = searchInput.value.trim().toLowerCase();

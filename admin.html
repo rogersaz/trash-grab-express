@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#10231b">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>Admin | Trash Grab Express</title>
-  <link rel="stylesheet" href="admin.css?v=20260731-runner">
+  <link rel="stylesheet" href="admin.css?v=20260731-portal">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script src="admin.js?v=20260731-runner" defer></script>
+  <script src="admin.js?v=20260731-portal" defer></script>
 </head>
 <body>
   <main>
@@ -180,6 +180,30 @@
       <p id="runner-update-error" class="form-error" role="alert" hidden></p>
       <button type="submit" id="save-runner-button">Save application review <span>→</span></button>
     </form>
+
+    <section class="runner-access" id="runner-access-section" hidden>
+      <div class="runner-access-heading">
+        <div><p class="eyebrow">Personal runner panel</p><h3>Portal access &amp; assigned stops</h3><p id="runner-access-status">Approve this runner to create their private route panel.</p></div>
+        <div class="runner-access-actions">
+          <a href="/runner.html" target="_blank" rel="noopener">Open runner portal ↗</a>
+          <button type="button" id="invite-runner-button">Send secure invite</button>
+        </div>
+      </div>
+
+      <form id="runner-assignment-form" class="runner-assignment-form">
+        <label class="wide">Pickup request<select name="serviceRequest" required><option value="">Choose a scheduled customer</option></select></label>
+        <label>Pickup date<input name="pickupDate" type="date" required></label>
+        <label>Pickup window<select name="pickupWindow" required><option>Before 6:00 AM</option><option>Before collection</option><option>After collection</option><option>Flexible</option></select></label>
+        <label>Route order<input name="sequenceOrder" type="number" min="1" max="100" value="1" required></label>
+        <label class="wide">Runner-safe instructions<textarea name="runnerNotes" maxlength="1000" placeholder="Gate location, bin placement, or other instructions the runner needs. Do not include private admin notes."></textarea></label>
+        <p class="form-error wide" id="runner-assignment-error" role="alert" hidden></p>
+        <button type="submit" id="assign-runner-stop-button" class="wide">Assign this pickup <span>→</span></button>
+      </form>
+
+      <div class="assigned-route-heading"><h3>Current assigned stops</h3><span id="runner-assignment-count">0 assignments</span></div>
+      <ol class="admin-assignment-list" id="runner-assignment-list"></ol>
+      <p class="runner-assignment-empty" id="runner-assignment-empty">No pickup locations have been assigned to this runner.</p>
+    </section>
   </dialog>
 
   <dialog id="profile-dialog" class="profile-dialog">

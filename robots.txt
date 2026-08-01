@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /runner.html
 Disallow: /.netlify/functions/
 
 Sitemap: https://trashgrab.app/sitemap.xml
