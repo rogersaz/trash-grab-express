@@ -80,6 +80,7 @@ document.querySelectorAll('.accordion details').forEach(detail => {
 const form = document.querySelector('#booking-form');
 const dialog = document.querySelector('#confirmation-dialog');
 const summary = document.querySelector('#request-summary');
+const confirmationMessage = document.querySelector('#confirmation-message');
 const copyButton = document.querySelector('#copy-summary');
 const submitButton = document.querySelector('#booking-submit');
 const errorMessage = document.querySelector('#booking-error');
@@ -87,6 +88,17 @@ const runnerForm = document.querySelector('#runner-form');
 const runnerSubmitButton = document.querySelector('#runner-submit');
 const runnerErrorMessage = document.querySelector('#runner-error');
 const runnerDialog = document.querySelector('#runner-confirmation-dialog');
+const paymentStatus = document.querySelector('#payment-status');
+
+const paymentResult = new URLSearchParams(window.location.search).get('payment');
+if (paymentResult === 'success') {
+  paymentStatus.textContent = '✓ Stripe checkout completed. Check your email for the payment receipt while we review service availability.';
+  paymentStatus.hidden = false;
+} else if (paymentResult === 'cancelled') {
+  paymentStatus.textContent = 'Checkout was cancelled and no new payment was completed. Your service request is still saved.';
+  paymentStatus.classList.add('cancelled');
+  paymentStatus.hidden = false;
+}
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -99,7 +111,7 @@ form.addEventListener('submit', async event => {
   const price = currentEstimate();
   const originalButtonText = submitButton.innerHTML;
   submitButton.disabled = true;
-  submitButton.textContent = 'Saving securely…';
+  submitButton.textContent = 'Saving your booking…';
   errorMessage.hidden = true;
 
   const request = {
@@ -128,6 +140,31 @@ form.addEventListener('submit', async event => {
     submitButton.disabled = false;
     submitButton.innerHTML = originalButtonText;
     return;
+  }
+
+  submitButton.textContent = 'Opening secure Stripe checkout…';
+  const checkoutToken = crypto.randomUUID();
+  try {
+    const checkoutResponse = await fetch('/.netlify/functions/create-checkout', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: request.email,
+        frequency: state.frequency,
+        bins: state.bins,
+        returns: state.returns,
+        checkoutToken
+      })
+    });
+    const checkout = await checkoutResponse.json().catch(() => ({}));
+    if (!checkoutResponse.ok || !checkout.url) {
+      throw new Error(checkout.error || 'Secure checkout could not be opened.');
+    }
+    window.location.assign(checkout.url);
+    return;
+  } catch (checkoutError) {
+    console.error('Unable to open Stripe Checkout', { message: checkoutError.message });
+    confirmationMessage.textContent = 'Your request was securely saved, but online checkout could not open. No payment was taken. We’ll contact you to finish payment safely.';
   }
 
   summary.textContent = [
