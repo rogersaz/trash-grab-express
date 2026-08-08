@@ -19,9 +19,9 @@
   <link rel="canonical" href="https://trashgrab.app/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>Trash Can to Curb Service Surprise AZ | Trash Grab Express</title>
-  <link rel="stylesheet" href="styles.css?v=20260731-seo" />
+  <link rel="stylesheet" href="styles.css?v=20260805-pay" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script src="script.js?v=20260731-runner" defer></script>
+  <script src="script.js?v=20260805-pay" defer></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -98,7 +98,7 @@
       <a href="#earn">Earn</a>
       <a href="#estimate">Get a quote</a>
       <a href="#faq">FAQ</a>
-      <a class="nav-cta" href="#book">Book a pickup</a>
+      <a class="nav-cta" href="#book">Book &amp; Pay</a>
     </nav>
   </header>
 
@@ -110,7 +110,7 @@
         <h1>Trash can to curb service <br><em>in Surprise, AZ.</em></h1>
         <p class="hero-lede">Need someone to take your trash cans out? We roll your bins to the curb before collection, return them afterward, and make weekly trash can service simple.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#estimate">Get an instant estimate <span>→</span></a>
+          <a class="button button-primary" href="#estimate">Book &amp; Pay <span>→</span></a>
           <a class="button button-ghost" href="#how-it-works"><span class="play">▶</span> See how it works</a>
         </div>
         <div class="trust-row" aria-label="Service benefits">
@@ -273,20 +273,21 @@
             <li id="summary-return-row"><span>✓</span><span>Post-collection return</span></li>
             <li><span>✓</span><span>Service completion update</span></li>
           </ul>
-          <a class="button button-primary full" href="#book">Request this plan <span>→</span></a>
-          <small>Estimate only. Final pricing depends on location and access.</small>
+          <a class="button button-primary full" href="#book">Book &amp; pay securely <span>→</span></a>
+          <small>Recurring plans renew monthly. Final service availability depends on location and access.</small>
         </aside>
       </div>
     </section>
 
     <section class="section booking" id="book">
       <div class="booking-copy reveal">
-        <p class="eyebrow light"><span></span> Ready when you are</p>
-        <h2>Put trash day<br>on <em>autopilot.</em></h2>
-        <p>Send a quick request. We’ll create a clean service summary you can save, copy, or share.</p>
-        <div class="booking-points"><span>✓ No payment required</span><span>✓ Takes about 60 seconds</span><span>✓ No long-term contract</span></div>
+        <p class="eyebrow light"><span></span> Secure online checkout</p>
+        <h2>Book it.<br><em>Pay safely.</em></h2>
+        <p>Share your service details, then continue to Stripe’s secure checkout to pay for your selected plan.</p>
+        <div class="booking-points"><span>✓ Card details stay with Stripe</span><span>✓ Takes about 60 seconds</span><span>✓ Cancel recurring service anytime</span></div>
       </div>
       <form class="booking-form reveal" id="booking-form">
+        <div class="payment-status" id="payment-status" role="status" hidden></div>
         <div aria-hidden="true" style="position:absolute;left:-10000px">
           <label>Website<input name="website" tabindex="-1" autocomplete="off"></label>
         </div>
@@ -300,8 +301,9 @@
           <label>Preferred start date<input required type="date" name="date"></label>
           <label class="full-field">Anything we should know?<textarea name="notes" maxlength="300" placeholder="Gate details, bin location, or schedule notes"></textarea></label>
         </div>
-        <label class="consent"><input required type="checkbox"><span>I confirm these details are accurate and understand this is a service request, not a confirmed booking.</span></label>
-        <button class="button button-primary full" type="submit" id="booking-submit">Send my service request <span>→</span></button>
+        <label class="consent"><input required type="checkbox"><span>I confirm these details are accurate and understand service is confirmed after availability is reviewed.</span></label>
+        <button class="button button-primary full" type="submit" id="booking-submit">Book &amp; pay with Stripe <span>→</span></button>
+        <div class="secure-checkout-note" aria-label="Secure payment information"><span aria-hidden="true">🔒</span><span>Secure checkout powered by <strong>Stripe</strong>. Trash Grab Express never receives your full card number.</span></div>
         <p id="booking-error" role="alert" hidden style="color:#a2261d;margin:.8rem 0 0"></p>
       </form>
     </section>
@@ -315,7 +317,8 @@
         <details><summary>What happens if my collection day changes?<span>+</span></summary><p>Update your request with the new day. Once service is confirmed, schedule-change instructions will be included with your plan.</p></details>
         <details><summary>Do I need to be home?<span>+</span></summary><p>No. As long as the bins are accessible, service can be completed without anyone home.</p></details>
         <details><summary>Can you handle more than four bins?<span>+</span></summary><p>Absolutely. Choose “4+ bins” in the estimator and add the exact count in your booking notes for a custom quote.</p></details>
-        <details><summary>Is this a long-term contract?<span>+</span></summary><p>No. Plans are designed to stay flexible. Final cancellation and pause details are included when service is confirmed.</p></details>
+        <details><summary>How does online payment work?<span>+</span></summary><p>After you submit your service details, Stripe securely collects payment for the plan you selected. Trash Grab Express does not receive or store your full card number.</p></details>
+        <details><summary>Is this a long-term contract?<span>+</span></summary><p>No. Recurring plans renew monthly and are designed to stay flexible. Final cancellation and pause details are included when service is confirmed.</p></details>
       </div>
     </section>
   </main>
@@ -323,7 +326,7 @@
   <footer>
     <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M14 15h20l-2 25H16L14 15Zm4-7h12l2 4H16l2-4Zm-7 4h26v4H11v-4Z"/></svg></span><span>Trash Grab <strong>Express</strong></span></a>
     <p>Local trash can curb service in Surprise, Arizona.</p>
-    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#faq">FAQ</a><a href="#book">Book</a></div>
+    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#faq">FAQ</a><a href="#book">Book &amp; Pay</a></div>
     <aside class="footer-sale"><strong>TrashGrab.app domain &amp; business concept available</strong><span>The domain and this local-service idea are offered for sale. Serious acquisition inquiries are welcome.</span></aside>
     <small>© <span id="year"></span> Trash Grab Express. All rights reserved.</small>
   </footer>
@@ -333,7 +336,7 @@
     <span class="success-icon">✓</span>
     <p class="eyebrow"><span></span> Request created</p>
     <h2>You’re one step closer to easier trash day.</h2>
-    <p>Your request was securely saved. Keep this summary for your records while our team reviews the details.</p>
+    <p id="confirmation-message">Your request was securely saved. Keep this summary for your records while our team reviews the details.</p>
     <pre id="request-summary"></pre>
     <button class="button button-primary full" id="copy-summary" type="button">Copy request summary</button>
   </dialog>
