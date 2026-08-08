@@ -8,6 +8,7 @@ A responsive service website with a Supabase-backed customer-request system and 
 
 - responsive landing page and mobile navigation
 - instant service-price estimator
+- Stripe-hosted Book & Pay checkout for one-time and monthly recurring plans
 - customer requests saved to Supabase
 - public Black & Blue Trash Bin Runner application and referral-interest form
 - protected admin login and request-management dashboard
@@ -52,3 +53,7 @@ Set these private environment variables in Netlify:
 The service account needs the least-privilege Route Optimization permission (`routeoptimization.locations.use`). Never reuse the browser key for server requests, commit a service-account key, or expose a private key in site JavaScript.
 
 If the three service-account settings are not present or the advanced optimizer is temporarily unavailable, route building automatically falls back to Routes API waypoint optimization. If the browser key is not present, the dashboard automatically displays the existing static map preview.
+
+## Stripe payment configuration
+
+Set `STRIPE_SECRET_KEY` as a private Netlify environment variable to activate Book & Pay. The key is used only by the server-side Checkout function and must never be added to this repository or browser JavaScript. Recurring weekly and every-other-week service plans are billed monthly; one-time service uses a single payment. Plans with four or more bins continue through the saved custom-quote workflow instead of being charged automatically.
