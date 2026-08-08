@@ -163,8 +163,11 @@ form.addEventListener('submit', async event => {
     window.location.assign(checkout.url);
     return;
   } catch (checkoutError) {
-    console.error('Unable to open Stripe Checkout', { message: checkoutError.message });
-    confirmationMessage.textContent = 'Your request was securely saved, but online checkout could not open. No payment was taken. We’ll contact you to finish payment safely.';
+    const safeCheckoutMessage = checkoutError instanceof Error
+      ? checkoutError.message
+      : 'Secure checkout could not be opened.';
+    console.error(`Unable to open Stripe Checkout: ${safeCheckoutMessage}`);
+    confirmationMessage.textContent = `Your request was securely saved, but online checkout could not open. No payment was taken. ${safeCheckoutMessage}`;
   }
 
   summary.textContent = [
