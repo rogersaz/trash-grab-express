@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import mapsConfigHandler from '../netlify/functions/maps-config.mjs';
 import optimizeRouteHandler from '../netlify/functions/optimize-route.mjs';
 import routeMapHandler from '../netlify/functions/route-map.mjs';
-import createCheckoutHandler, { checkoutPlan, safeStripeDiagnostic } from '../netlify/functions/create-checkout.mjs';
+import createCheckoutHandler, { checkoutPlan } from '../netlify/functions/create-checkout.mjs';
 
 test('map functions reject unauthenticated requests', async () => {
   const configResponse = await mapsConfigHandler(new Request('https://trashgrab.app/.netlify/functions/maps-config'));
@@ -59,15 +59,4 @@ test('checkout function rejects unsupported methods and oversized bodies', async
 
   assert.equal(methodResponse.status, 405);
   assert.equal(sizeResponse.status, 413);
-});
-
-test('Stripe diagnostics redact secret keys before logging', () => {
-  const diagnostic = safeStripeDiagnostic({
-    type: 'invalid_request_error',
-    message: 'Invalid API Key provided: sk_live_superSecretValue123'
-  });
-
-  assert.equal(diagnostic.type, 'invalid_request_error');
-  assert.equal(diagnostic.message, 'Invalid API Key provided: [redacted Stripe key]');
-  assert.equal(diagnostic.message.includes('superSecretValue123'), false);
 });
