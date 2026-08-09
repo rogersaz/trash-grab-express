@@ -18,19 +18,6 @@ function validEmail(value) {
   return typeof value === 'string' && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export function safeStripeDiagnostic(error) {
-  const message = String(error?.message || 'Stripe did not provide an error message.')
-    .replace(/\b(?:sk|pk|rk)_(?:test|live)_[A-Za-z0-9_-]+\b/g, '[redacted Stripe key]')
-    .replace(/Bearer\s+\S+/gi, 'Bearer [redacted]')
-    .slice(0, 300);
-  return {
-    type: String(error?.type || 'unknown').slice(0, 80),
-    code: String(error?.code || 'none').slice(0, 80),
-    param: String(error?.param || 'none').slice(0, 120),
-    message
-  };
-}
-
 export function checkoutPlan({ frequency, bins, returns }) {
   const plan = PLAN_PRICES[frequency];
   const binCount = Number(bins);
@@ -95,7 +82,7 @@ export default async function handler(request) {
   });
   const checkout = await stripeResponse.json().catch(() => ({}));
   if (!stripeResponse.ok || !checkout.url) {
-    console.error('Stripe Checkout session creation failed', safeStripeDiagnostic(checkout?.error));
+    console.error('Stripe Checkout session creation failed', { type: checkout?.error?.type, code: checkout?.error?.code });
     return json(502, { error: 'Secure checkout is temporarily unavailable. No payment was taken.' });
   }
 
