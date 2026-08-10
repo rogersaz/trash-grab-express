@@ -57,9 +57,11 @@ export default async function handler(request) {
   const origin = siteUrl();
   const params = new URLSearchParams({
     mode: plan.recurring ? 'subscription' : 'payment',
+    'managed_payments[enabled]': 'false',
     customer_email: body.email,
     success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}#book`,
     cancel_url: `${origin}/?payment=cancelled#book`,
+    'payment_method_types[0]': 'card',
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': String(plan.amount),
@@ -76,6 +78,7 @@ export default async function handler(request) {
     headers: {
       authorization: `Bearer ${stripeSecretKey}`,
       'content-type': 'application/x-www-form-urlencoded',
+      'stripe-version': '2026-02-25.clover',
       'idempotency-key': `trash-grab-${body.checkoutToken}`
     },
     body: params
