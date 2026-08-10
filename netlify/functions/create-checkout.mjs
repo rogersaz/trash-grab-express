@@ -57,6 +57,7 @@ export default async function handler(request) {
   const origin = siteUrl();
   const params = new URLSearchParams({
     mode: plan.recurring ? 'subscription' : 'payment',
+    'managed_payments[enabled]': 'false',
     customer_email: body.email,
     success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}#book`,
     cancel_url: `${origin}/?payment=cancelled#book`,
