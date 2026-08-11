@@ -18,9 +18,10 @@ test('estimator starts at zero with no plan choices preselected', async () => {
 });
 
 test('checkout shows the selected plan and blocks incomplete estimates', async () => {
-  const [html, script] = await Promise.all([
+  const [html, script, styles] = await Promise.all([
     readFile(projectFile('index.html'), 'utf8'),
-    readFile(projectFile('script.js'), 'utf8')
+    readFile(projectFile('script.js'), 'utf8'),
+    readFile(projectFile('styles.css'), 'utf8')
   ]);
 
   assert.match(html, /id="checkout-plan-summary"/);
@@ -30,4 +31,5 @@ test('checkout shows the selected plan and blocks incomplete estimates', async (
   assert.match(html, /id="checkout-plan-price">\$0<\/strong>/);
   assert.match(script, /if \(!estimateIsComplete\(\)\)/);
   assert.match(script, /Please choose your bin count and service schedule before continuing to Stripe\./);
+  assert.match(styles, /\.checkout-plan-heading>strong\{[^}]*color:#fff;[^}]*background:#c62828;/);
 });
