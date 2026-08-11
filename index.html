@@ -19,9 +19,9 @@
   <link rel="canonical" href="https://trashgrab.app/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>Trash Can to Curb Service Surprise AZ | Trash Grab Express</title>
-  <link rel="stylesheet" href="styles.css?v=20260805-pay" />
+  <link rel="stylesheet" href="styles.css?v=20260810-plan-summary" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script src="script.js?v=20260808-checkout" defer></script>
+  <script src="script.js?v=20260810-plan-summary" defer></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -248,7 +248,7 @@
           <fieldset>
             <legend>How many bins?</legend>
             <div class="segmented" data-control="bins">
-              <button type="button" data-value="1" class="active">1 bin</button>
+              <button type="button" data-value="1">1 bin</button>
               <button type="button" data-value="2">2 bins</button>
               <button type="button" data-value="3">3 bins</button>
               <button type="button" data-value="4">4+ bins</button>
@@ -257,23 +257,24 @@
           <fieldset>
             <legend>How often?</legend>
             <div class="option-list">
-              <label><input type="radio" name="frequency" value="weekly" checked><span><b>Every week</b><small>Set-it-and-forget-it service</small></span><em>Best value</em></label>
+              <label><input type="radio" name="frequency" value="weekly"><span><b>Every week</b><small>Set-it-and-forget-it service</small></span><em>Best value</em></label>
               <label><input type="radio" name="frequency" value="biweekly"><span><b>Every other week</b><small>Great for lighter households</small></span></label>
               <label><input type="radio" name="frequency" value="once"><span><b>One-time help</b><small>Vacation or special circumstance</small></span></label>
             </div>
           </fieldset>
-          <label class="toggle-row"><span><b>Bring bins back in</b><small>Add return service after collection</small></span><input id="return-service" type="checkbox" checked><i></i></label>
+          <label class="toggle-row"><span><b>Bring bins back in</b><small>Add return service after collection</small></span><input id="return-service" type="checkbox"><i></i></label>
+          <p class="estimate-selection-error" id="estimate-selection-error" role="alert" hidden>Please choose your bin count and service schedule before checkout.</p>
         </div>
         <aside class="estimate-result">
           <p>Your estimated plan</p>
-          <div class="price"><sup>$</sup><strong id="estimate-price">28</strong><span id="estimate-period">/ month</span></div>
+          <div class="price"><sup>$</sup><strong id="estimate-price">0</strong><span id="estimate-period"></span></div>
           <ul>
-            <li><span>✓</span><span id="summary-frequency">Weekly curb service</span></li>
-            <li><span>✓</span><span id="summary-bins">1 trash bin</span></li>
-            <li id="summary-return-row"><span>✓</span><span>Post-collection return</span></li>
+            <li><span>•</span><span id="summary-frequency">Choose how often</span></li>
+            <li><span>•</span><span id="summary-bins">Choose your bin count</span></li>
+            <li id="summary-return-row"><span>•</span><span id="summary-return">Bin return not selected</span></li>
             <li><span>✓</span><span>Service completion update</span></li>
           </ul>
-          <a class="button button-primary full" href="#book">Book &amp; pay securely <span>→</span></a>
+          <a class="button button-primary full" id="estimate-book-button" href="#book">Book &amp; pay securely <span>→</span></a>
           <small>Recurring plans renew monthly. Final service availability depends on location and access.</small>
         </aside>
       </div>
@@ -288,6 +289,18 @@
       </div>
       <form class="booking-form reveal" id="booking-form">
         <div class="payment-status" id="payment-status" role="status" hidden></div>
+        <section class="checkout-plan-summary" id="checkout-plan-summary" aria-live="polite" aria-label="Selected service plan">
+          <div class="checkout-plan-heading">
+            <div><span>Your selected plan</span><strong id="checkout-plan-frequency">Not selected</strong></div>
+            <strong id="checkout-plan-price">$0</strong>
+          </div>
+          <div class="checkout-plan-details">
+            <span><b>Bins</b><span id="checkout-plan-bins">Not selected</span></span>
+            <span><b>Return service</b><span id="checkout-plan-return">No</span></span>
+          </div>
+          <p id="checkout-plan-help">Please choose your bin count and service schedule before entering your details.</p>
+          <a href="#estimate" id="checkout-plan-edit">Choose your options <span>→</span></a>
+        </section>
         <div aria-hidden="true" style="position:absolute;left:-10000px">
           <label>Website<input name="website" tabindex="-1" autocomplete="off"></label>
         </div>
