@@ -2,7 +2,7 @@ const SUPABASE_URL = 'https://vxgmpxcaaxqirsmzlkry.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z21weGNhYXhxaXJzbXpsa3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4NjUzNTksImV4cCI6MjA0NzQ0MTM1OX0.ojFfNcincBhWUL7r7JDyulkzBiWaLmFJqtQ4kOyaCyE';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-const state = { bins: 1, frequency: 'weekly', returns: true };
+const state = { bins: null, frequency: null, returns: false };
 const prices = {
   weekly: { base: 22, extraBin: 6, returnFee: 6, label: 'Weekly curb service', period: '/ month' },
   biweekly: { base: 15, extraBin: 4, returnFee: 4, label: 'Every-other-week curb service', period: '/ month' },
@@ -10,17 +10,52 @@ const prices = {
 };
 
 function currentEstimate() {
+  if (!estimateIsComplete()) return 0;
   const plan = prices[state.frequency];
   return plan.base + ((state.bins - 1) * plan.extraBin) + (state.returns ? plan.returnFee : 0);
 }
 
+function estimateIsComplete() {
+  return Number.isInteger(state.bins) && Boolean(prices[state.frequency]);
+}
+
+function binLabel() {
+  if (!Number.isInteger(state.bins)) return 'Not selected';
+  return state.bins === 4 ? '4 or more trash bins' : `${state.bins} trash ${state.bins === 1 ? 'bin' : 'bins'}`;
+}
+
 function updateEstimate() {
-  const plan = prices[state.frequency];
-  document.querySelector('#estimate-price').textContent = currentEstimate();
-  document.querySelector('#estimate-period').textContent = plan.period;
-  document.querySelector('#summary-frequency').textContent = plan.label;
-  document.querySelector('#summary-bins').textContent = state.bins === 4 ? '4 or more trash bins' : `${state.bins} trash ${state.bins === 1 ? 'bin' : 'bins'}`;
-  document.querySelector('#summary-return-row').hidden = !state.returns;
+  const plan = prices[state.frequency] || null;
+  const complete = estimateIsComplete();
+  const price = currentEstimate();
+  const selectedBins = binLabel();
+
+  document.querySelector('#estimate-price').textContent = price;
+  document.querySelector('#estimate-period').textContent = complete ? plan.period : '';
+  document.querySelector('#summary-frequency').textContent = plan ? plan.label : 'Choose how often';
+  document.querySelector('#summary-bins').textContent = Number.isInteger(state.bins) ? selectedBins : 'Choose your bin count';
+  document.querySelector('#summary-return').textContent = state.returns ? 'Post-collection return' : 'Bin return not selected';
+
+  document.querySelector('#checkout-plan-frequency').textContent = plan ? plan.label : 'Not selected';
+  document.querySelector('#checkout-plan-price').textContent = complete ? `$${price} ${plan.period}` : '$0';
+  document.querySelector('#checkout-plan-bins').textContent = selectedBins;
+  document.querySelector('#checkout-plan-return').textContent = state.returns ? 'Yes — bring bins back in' : 'No';
+  document.querySelector('#checkout-plan-help').hidden = complete;
+  document.querySelector('#checkout-plan-summary').classList.toggle('complete', complete);
+
+  if (complete) document.querySelector('#estimate-selection-error').hidden = true;
+}
+
+function showEstimateSelectionError() {
+  const selectionError = document.querySelector('#estimate-selection-error');
+  selectionError.textContent = 'Please choose your bin count and service schedule before checkout.';
+  selectionError.hidden = false;
+  document.querySelector('#estimate').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const firstMissingChoice = !Number.isInteger(state.bins)
+    ? document.querySelector('[data-control="bins"] button')
+    : document.querySelector('input[name="frequency"]');
+  window.setTimeout(() => firstMissingChoice?.focus(), 450);
 }
 
 document.querySelectorAll('[data-control="bins"] button').forEach(button => {
@@ -42,6 +77,12 @@ document.querySelectorAll('input[name="frequency"]').forEach(input => {
 document.querySelector('#return-service').addEventListener('change', event => {
   state.returns = event.target.checked;
   updateEstimate();
+});
+
+document.querySelector('#estimate-book-button').addEventListener('click', event => {
+  if (estimateIsComplete()) return;
+  event.preventDefault();
+  showEstimateSelectionError();
 });
 
 const navToggle = document.querySelector('.nav-toggle');
@@ -102,6 +143,12 @@ if (paymentResult === 'success') {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
+  if (!estimateIsComplete()) {
+    errorMessage.textContent = 'Please choose your bin count and service schedule before continuing to Stripe.';
+    errorMessage.hidden = false;
+    showEstimateSelectionError();
+    return;
+  }
   if (!form.reportValidity()) return;
 
   const data = new FormData(form);
