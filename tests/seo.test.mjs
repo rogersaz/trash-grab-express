@@ -35,5 +35,6 @@ test('homepage exposes canonical, indexable, and valid local business metadata',
   assert.deepEqual(graphTypes, ['WebSite', 'LocalBusiness']);
   assert.match(robots, /Sitemap: https:\/\/trashgrab\.app\/sitemap\.xml/);
   assert.match(sitemap, /<loc>https:\/\/trashgrab\.app\/<\/loc>/);
-  assert.match(sitemap, /<lastmod>2026-07-31<\/lastmod>/);
+  assert.match(sitemap, /<lastmod>2026-08-12<\/lastmod>/);
+  assert.match(sitemap, /https:\/\/trashgrab\.app\/privacy\.html/);
 });

@@ -286,7 +286,7 @@
         <p class="eyebrow light"><span></span> Secure online checkout</p>
         <h2>Book it.<br><em>Pay safely.</em></h2>
         <p>Share your service details, then continue to Stripe’s secure checkout to pay for your selected plan.</p>
-        <div class="booking-points"><span>✓ Card details stay with Stripe</span><span>✓ Takes about 60 seconds</span><span>✓ Cancel recurring service anytime</span></div>
+        <div class="booking-points"><span>✓ Card details stay with Stripe</span><span>✓ Takes about 60 seconds</span><span>✓ <a href="/account.html">Manage or cancel recurring billing</a></span></div>
       </div>
       <form class="booking-form reveal" id="booking-form">
         <div class="payment-status" id="payment-status" role="status" hidden></div>
@@ -315,7 +315,7 @@
           <label>Preferred start date<input required type="date" name="date"></label>
           <label class="full-field">Anything we should know?<textarea name="notes" maxlength="300" placeholder="Gate details, bin location, or schedule notes"></textarea></label>
         </div>
-        <label class="consent"><input required type="checkbox"><span>I confirm these details are accurate and understand service is confirmed after availability is reviewed.</span></label>
+        <label class="consent"><input required type="checkbox"><span>I confirm these details are accurate, understand service is confirmed after availability is reviewed, and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and <a href="/cancellation.html" target="_blank" rel="noopener">Cancellation Policy</a>.</span></label>
         <button class="button button-primary full" type="submit" id="booking-submit">Book &amp; pay with Stripe <span>→</span></button>
         <div class="secure-checkout-note" aria-label="Secure payment information"><span aria-hidden="true">🔒</span><span>Secure checkout powered by <strong>Stripe</strong>. Trash Grab Express never receives your full card number.</span></div>
         <p id="booking-error" role="alert" hidden style="color:#a2261d;margin:.8rem 0 0"></p>
@@ -339,6 +339,7 @@
           <label class="full-field">Message<textarea required name="message" minlength="10" maxlength="3000" placeholder="How can Trash Grab Express help?"></textarea></label>
         </div>
         <button class="button button-primary full" type="submit" id="contact-submit">Send message <span>→</span></button>
+        <small>By submitting, you agree that we may use your information to respond under our <a href="/privacy.html">Privacy Policy</a>.</small>
         <p class="contact-form-status" id="contact-form-status" role="status" hidden></p>
       </form>
     </section>
@@ -353,7 +354,7 @@
         <details><summary>Do I need to be home?<span>+</span></summary><p>No. As long as the bins are accessible, service can be completed without anyone home.</p></details>
         <details><summary>Can you handle more than four bins?<span>+</span></summary><p>Absolutely. Choose “4+ bins” in the estimator and add the exact count in your booking notes for a custom quote.</p></details>
         <details><summary>How does online payment work?<span>+</span></summary><p>After you submit your service details, Stripe securely collects payment for the plan you selected. Trash Grab Express does not receive or store your full card number.</p></details>
-        <details><summary>Is this a long-term contract?<span>+</span></summary><p>No. Recurring plans renew monthly and are designed to stay flexible. Final cancellation and pause details are included when service is confirmed.</p></details>
+        <details><summary>Is this a long-term contract?<span>+</span></summary><p>No. Recurring plans renew monthly and are designed to stay flexible. You can request a secure Stripe billing link from the <a href="/account.html">Manage billing page</a> to update payment details, view invoices, or cancel.</p></details>
       </div>
     </section>
   </main>
@@ -361,9 +362,9 @@
   <footer>
     <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M14 15h20l-2 25H16L14 15Zm4-7h12l2 4H16l2-4Zm-7 4h26v4H11v-4Z"/></svg></span><span>Trash Grab <strong>Express</strong></span></a>
     <p>Local trash can curb service in Surprise, Arizona.</p>
-    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="#book">Book &amp; Pay</a></div>
+    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="/account.html">Manage billing</a><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="#book">Book &amp; Pay</a></div>
     <aside class="footer-sale"><strong>TrashGrab.app domain &amp; business concept available</strong><span>The domain and this local-service idea are offered for sale. Serious acquisition inquiries are welcome.</span></aside>
-    <small>© <span id="year"></span> Trash Grab Express. All rights reserved.</small>
+    <small>© <span id="year"></span> Trash Grab Express. All rights reserved. · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/cancellation.html">Cancellation</a> · <a href="/refund.html">Refunds</a></small>
   </footer>
 
   <dialog id="confirmation-dialog">

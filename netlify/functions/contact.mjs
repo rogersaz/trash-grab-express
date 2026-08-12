@@ -1,4 +1,4 @@
-import { sendNotification } from './_email.mjs';
+import { emailLayout, sendNotification } from './_email.mjs';
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -27,10 +27,11 @@ export default async function handler(request) {
     return json(422, { error: 'Please check your contact details and message.' });
   }
 
-  const result = await sendNotification({
+  const messageId = crypto.randomUUID();
+  const adminEmail = sendNotification({
     subject: `TrashGrab contact — ${subject}`,
     replyTo: email,
-    idempotencyKey: `contact-${crypto.randomUUID()}`,
+    idempotencyKey: `contact-${messageId}`,
     text: [
       'NEW TRASHGRAB.APP CONTACT MESSAGE',
       '',
@@ -42,6 +43,19 @@ export default async function handler(request) {
       message
     ].join('\n')
   });
+  const customerEmail = sendNotification({
+    to: email,
+    subject: 'We received your Trash Grab Express message',
+    idempotencyKey: `contact-customer-${messageId}`,
+    text: `Hi ${name},\n\nWe received your message about “${subject}.” We’ll reply as soon as we can.\n\nTrash Grab Express\nhttps://trashgrab.app`,
+    html: emailLayout({
+      heading: `Thanks for reaching out, ${name}.`,
+      intro: `We received your message about “${subject}.” We’ll reply as soon as we can.`,
+      ctaLabel: 'Return to TrashGrab.app',
+      ctaUrl: 'https://trashgrab.app/'
+    })
+  });
+  const [result] = await Promise.all([adminEmail, customerEmail]);
 
   return json(result.sent ? 200 : 503, result.sent ? { sent: true } : { error: 'Email is not configured yet.' });
 }

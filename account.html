@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#10231b">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/legal.css?v=20260812-customer-care">
+  <script src="/account.js?v=20260812-customer-care" defer></script>
+  <title>Manage Billing | Trash Grab Express</title>
+</head>
+<body>
+  <header class="simple-header"><a class="simple-brand" href="/"><span>Trash Grab</span> Express</a><a href="/">Return home</a></header>
+  <main class="account-shell">
+    <section class="account-copy">
+      <p class="kicker">Secure Stripe customer portal</p>
+      <h1>Manage your billing.</h1>
+      <p>Request a temporary access link using the same email address you entered during Stripe Checkout.</p>
+      <ul><li>Update your payment method</li><li>View invoices and receipts</li><li>Manage or cancel recurring service</li></ul>
+    </section>
+    <form class="account-card" id="billing-portal-form">
+      <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <h2>Email me a secure link</h2>
+      <label>Stripe billing email<input required type="email" name="email" maxlength="254" autocomplete="email" placeholder="you@example.com"></label>
+      <button type="submit" id="billing-submit">Send secure billing link</button>
+      <p class="form-status" id="billing-status" role="status" hidden></p>
+      <small>For privacy, the confirmation looks the same whether or not an account is found. The temporary link is sent only to the billing email.</small>
+    </form>
+  </main>
+  <footer class="simple-footer"><span>Trash Grab Express · Surprise, Arizona</span><nav><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/cancellation.html">Cancellation</a><a href="/refund.html">Refunds</a></nav></footer>
+</body>
+</html>
