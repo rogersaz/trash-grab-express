@@ -69,6 +69,7 @@ const statusLabels = {
   new: 'New', contacted: 'Contacted', scheduled: 'Scheduled',
   active: 'Active', completed: 'Completed', cancelled: 'Cancelled'
 };
+const paymentStatusLabels = { paid: 'PAID', unpaid: 'UNPAID' };
 const planLabels = { weekly: 'Weekly', biweekly: 'Every other week', once: 'One time' };
 const runnerStatusLabels = {
   pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Not approved'
@@ -103,6 +104,13 @@ function makeStatus(status) {
   const badge = document.createElement('span');
   badge.className = `status-pill status-${status}`;
   badge.textContent = statusLabels[status] || status;
+  return badge;
+}
+function makePaymentStatus(status = 'unpaid') {
+  const normalizedStatus = status === 'paid' ? 'paid' : 'unpaid';
+  const badge = document.createElement('span');
+  badge.className = `payment-pill payment-${normalizedStatus}`;
+  badge.textContent = paymentStatusLabels[normalizedStatus];
   return badge;
 }
 
@@ -555,6 +563,9 @@ function renderRequests() {
     const statusCell = document.createElement('td');
     statusCell.append(makeStatus(request.status));
 
+    const paymentCell = document.createElement('td');
+    paymentCell.append(makePaymentStatus(request.payment_status));
+
     const createdCell = makeCell(formatDate(request.created_at, true));
     const actionCell = document.createElement('td');
     const viewButton = document.createElement('button');
@@ -564,7 +575,7 @@ function renderRequests() {
     viewButton.addEventListener('click', () => openRequest(request.id));
     actionCell.append(viewButton);
 
-    row.append(customerCell, planCell, startCell, statusCell, createdCell, actionCell);
+    row.append(customerCell, planCell, startCell, statusCell, paymentCell, createdCell, actionCell);
     rows.append(row);
   });
 }
@@ -608,10 +619,15 @@ function openRequest(id) {
   document.querySelector('#detail-bins').textContent = String(request.bin_count);
   document.querySelector('#detail-date').textContent = formatDate(request.preferred_start_date);
   document.querySelector('#detail-price').textContent = `$${Number(request.estimated_price).toFixed(2)}`;
+  const detailPaymentStatus = document.querySelector('#detail-payment-status');
+  const paymentStatus = request.payment_status === 'paid' ? 'paid' : 'unpaid';
+  detailPaymentStatus.className = `payment-pill payment-${paymentStatus}`;
+  detailPaymentStatus.textContent = paymentStatusLabels[paymentStatus];
   document.querySelector('#detail-notes').textContent = request.notes || 'No notes provided.';
 
   updateForm.elements.pickupDate.value = request.preferred_start_date;
   updateForm.elements.status.value = request.status;
+  updateForm.elements.paymentStatus.value = paymentStatus;
   updateForm.elements.adminNotes.value = request.admin_notes || '';
   clearError(updateError);
   requestDialog.showModal();
@@ -628,10 +644,13 @@ updateForm.addEventListener('submit', async event => {
 
   const data = new FormData(updateForm);
   const nextStatus = String(data.get('status'));
+  const nextPaymentStatus = String(data.get('paymentStatus')) === 'paid' ? 'paid' : 'unpaid';
   const now = new Date().toISOString();
   const updates = {
     preferred_start_date: String(data.get('pickupDate')),
     status: nextStatus,
+    payment_status: nextPaymentStatus,
+    paid_at: nextPaymentStatus === 'paid' ? (request.paid_at || now) : null,
     admin_notes: String(data.get('adminNotes') || '').trim() || null
   };
   if (nextStatus === 'contacted' && !request.contacted_at) updates.contacted_at = now;
