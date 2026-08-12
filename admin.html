@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#10231b">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>Admin | Trash Grab Express</title>
-  <link rel="stylesheet" href="admin.css?v=20260731-portal">
+  <link rel="stylesheet" href="admin.css?v=20260812-payment-status">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script src="admin.js?v=20260731-portal" defer></script>
+  <script src="admin.js?v=20260812-payment-status" defer></script>
 </head>
 <body>
   <main>
@@ -121,7 +121,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Customer</th><th>Plan</th><th>Start date</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+              <thead><tr><th>Customer</th><th>Plan</th><th>Start date</th><th>Service status</th><th>Payment</th><th>Submitted</th><th></th></tr></thead>
               <tbody id="request-rows"></tbody>
             </table>
             <div class="empty-state" id="empty-state" hidden><span>✓</span><h3>Nothing waiting here</h3><p>Requests matching this view will appear automatically.</p></div>
@@ -150,12 +150,13 @@
     <div class="dialog-heading"><p class="eyebrow">Request details</p><h2 id="detail-name">Customer</h2><span id="detail-status" class="status-pill">New</span></div>
     <div class="detail-grid">
       <section><h3>Contact</h3><dl><div><dt>Email</dt><dd><a id="detail-email"></a></dd></div><div><dt>Phone</dt><dd><a id="detail-phone"></a></dd></div><div><dt>Address</dt><dd id="detail-address"></dd></div></dl></section>
-      <section><h3>Service</h3><dl><div><dt>Plan</dt><dd id="detail-plan"></dd></div><div><dt>Bins</dt><dd id="detail-bins"></dd></div><div><dt>Preferred start</dt><dd id="detail-date"></dd></div><div><dt>Estimate</dt><dd id="detail-price"></dd></div></dl></section>
+      <section><h3>Service</h3><dl><div><dt>Plan</dt><dd id="detail-plan"></dd></div><div><dt>Bins</dt><dd id="detail-bins"></dd></div><div><dt>Preferred start</dt><dd id="detail-date"></dd></div><div><dt>Estimate</dt><dd id="detail-price"></dd></div><div><dt>Payment</dt><dd><span id="detail-payment-status" class="payment-pill payment-unpaid">UNPAID</span></dd></div></dl></section>
     </div>
     <section class="customer-notes"><h3>Customer notes</h3><p id="detail-notes">No notes provided.</p></section>
     <form id="request-update-form" class="update-form">
       <label>Next pickup date<input type="date" name="pickupDate" required></label>
       <label>Status<select name="status"><option value="new">New</option><option value="contacted">Contacted</option><option value="scheduled">Scheduled</option><option value="active">Active</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+      <label>Payment status<select name="paymentStatus"><option value="unpaid">UNPAID</option><option value="paid">PAID</option></select></label>
       <label>Private admin notes<textarea name="adminNotes" maxlength="2000" placeholder="Follow-up details, access notes, scheduling information…"></textarea></label>
       <p id="update-error" class="form-error" role="alert" hidden></p>
       <div class="dialog-actions">
