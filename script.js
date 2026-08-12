@@ -130,6 +130,10 @@ const runnerSubmitButton = document.querySelector('#runner-submit');
 const runnerErrorMessage = document.querySelector('#runner-error');
 const runnerDialog = document.querySelector('#runner-confirmation-dialog');
 const paymentStatus = document.querySelector('#payment-status');
+const contactForm = document.querySelector('#contact-form');
+const contactSubmit = document.querySelector('#contact-submit');
+const contactStatus = document.querySelector('#contact-form-status');
+const contactStartedAt = Date.now();
 
 const paymentResult = new URLSearchParams(window.location.search).get('payment');
 if (paymentResult === 'success') {
@@ -162,6 +166,7 @@ form.addEventListener('submit', async event => {
   errorMessage.hidden = true;
 
   const request = {
+    id: crypto.randomUUID(),
     first_name: String(data.get('firstName')).trim(),
     last_name: String(data.get('lastName')).trim(),
     email: String(data.get('email')).trim().toLowerCase(),
@@ -189,6 +194,16 @@ form.addEventListener('submit', async event => {
     return;
   }
 
+  try {
+    await fetch('/.netlify/functions/notify-service-request', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ requestId: request.id })
+    });
+  } catch (notificationError) {
+    console.error('Service request notification could not be sent', notificationError);
+  }
+
   submitButton.textContent = 'Opening secure Stripe checkout…';
   const checkoutToken = crypto.randomUUID();
   try {
@@ -200,6 +215,7 @@ form.addEventListener('submit', async event => {
         frequency: state.frequency,
         bins: state.bins,
         returns: state.returns,
+        requestId: request.id,
         checkoutToken
       })
     });
@@ -253,6 +269,46 @@ copyButton.addEventListener('click', async () => {
   } catch {
     copyButton.textContent = 'Select and copy the summary above';
   }
+});
+
+contactForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!contactForm.reportValidity()) return;
+  const data = new FormData(contactForm);
+  if (data.get('website')) return;
+
+  const originalText = contactSubmit.innerHTML;
+  contactSubmit.disabled = true;
+  contactSubmit.textContent = 'Sending…';
+  contactStatus.hidden = true;
+  contactStatus.classList.remove('error');
+
+  try {
+    const response = await fetch('/.netlify/functions/contact', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: String(data.get('name') || '').trim(),
+        email: String(data.get('email') || '').trim(),
+        phone: String(data.get('phone') || '').trim(),
+        subject: String(data.get('subject') || '').trim(),
+        message: String(data.get('message') || '').trim(),
+        website: String(data.get('website') || ''),
+        startedAt: contactStartedAt
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Your message could not be sent.');
+    contactForm.reset();
+    contactStatus.textContent = '✓ Your message was sent. We’ll get back to you soon.';
+  } catch (error) {
+    contactStatus.textContent = error instanceof Error ? error.message : 'Your message could not be sent. Please try again.';
+    contactStatus.classList.add('error');
+  }
+
+  contactStatus.hidden = false;
+  contactSubmit.disabled = false;
+  contactSubmit.innerHTML = originalText;
 });
 
 runnerForm.addEventListener('submit', async event => {

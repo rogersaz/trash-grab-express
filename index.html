@@ -19,9 +19,9 @@
   <link rel="canonical" href="https://trashgrab.app/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>Trash Can to Curb Service Surprise AZ | Trash Grab Express</title>
-  <link rel="stylesheet" href="styles.css?v=20260811-red-checkout-price" />
+  <link rel="stylesheet" href="styles.css?v=20260812-contact-email" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js" integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script src="script.js?v=20260810-plan-summary" defer></script>
+  <script src="script.js?v=20260812-contact-email" defer></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -97,6 +97,7 @@
       <a href="#how-it-works">How it works</a>
       <a href="#earn">Earn</a>
       <a href="#estimate">Get a quote</a>
+      <a href="#contact">Contact</a>
       <a href="#faq">FAQ</a>
       <a class="nav-cta" href="#book">Book &amp; Pay</a>
     </nav>
@@ -321,6 +322,27 @@
       </form>
     </section>
 
+    <section class="section contact-section" id="contact">
+      <div class="contact-copy reveal">
+        <p class="eyebrow"><span></span> Questions before trash day?</p>
+        <h2>Send us a<br><em>quick message.</em></h2>
+        <p>Ask about service areas, vacation coverage, accessibility needs, or a custom bin count. We’ll reply by email or phone.</p>
+        <div class="contact-points"><span>✓ Sent securely</span><span>✓ No payment information needed</span><span>✓ Replies go directly to you</span></div>
+      </div>
+      <form class="contact-form reveal" id="contact-form">
+        <div aria-hidden="true" class="honeypot-field"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="form-grid">
+          <label>Name<input required name="name" maxlength="120" autocomplete="name" placeholder="Your name"></label>
+          <label>Email<input required type="email" name="email" maxlength="254" autocomplete="email" placeholder="you@example.com"></label>
+          <label>Phone <small>Optional</small><input type="tel" name="phone" maxlength="30" autocomplete="tel" placeholder="(555) 555-5555"></label>
+          <label>What can we help with?<select required name="subject"><option value="">Choose a subject</option><option>New service question</option><option>Existing service</option><option>Vacation coverage</option><option>Custom quote</option><option>Payment question</option><option>Other</option></select></label>
+          <label class="full-field">Message<textarea required name="message" minlength="10" maxlength="3000" placeholder="How can Trash Grab Express help?"></textarea></label>
+        </div>
+        <button class="button button-primary full" type="submit" id="contact-submit">Send message <span>→</span></button>
+        <p class="contact-form-status" id="contact-form-status" role="status" hidden></p>
+      </form>
+    </section>
+
     <section class="section faq" id="faq">
       <div class="section-heading reveal"><p class="eyebrow"><span></span> Good questions</p><h2>Everything you need<br>to know <em>before pickup.</em></h2></div>
       <div class="accordion reveal">
@@ -339,7 +361,7 @@
   <footer>
     <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M14 15h20l-2 25H16L14 15Zm4-7h12l2 4H16l2-4Zm-7 4h26v4H11v-4Z"/></svg></span><span>Trash Grab <strong>Express</strong></span></a>
     <p>Local trash can curb service in Surprise, Arizona.</p>
-    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#faq">FAQ</a><a href="#book">Book &amp; Pay</a></div>
+    <div><a href="#services">Services</a><a href="#earn">Earn</a><a href="/runner.html">Runner portal</a><a href="#estimate">Pricing</a><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="#book">Book &amp; Pay</a></div>
     <aside class="footer-sale"><strong>TrashGrab.app domain &amp; business concept available</strong><span>The domain and this local-service idea are offered for sale. Serious acquisition inquiries are welcome.</span></aside>
     <small>© <span id="year"></span> Trash Grab Express. All rights reserved.</small>
   </footer>
