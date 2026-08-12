@@ -2,8 +2,12 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://trashgrab.app/</loc>
-    <lastmod>2026-07-31</lastmod>
+    <lastmod>2026-08-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url><loc>https://trashgrab.app/privacy.html</loc><lastmod>2026-08-12</lastmod></url>
+  <url><loc>https://trashgrab.app/terms.html</loc><lastmod>2026-08-12</lastmod></url>
+  <url><loc>https://trashgrab.app/cancellation.html</loc><lastmod>2026-08-12</lastmod></url>
+  <url><loc>https://trashgrab.app/refund.html</loc><lastmod>2026-08-12</lastmod></url>
 </urlset>

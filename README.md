@@ -11,6 +11,9 @@ A responsive service website with a Supabase-backed customer-request system and 
 - Stripe-hosted Book & Pay checkout for one-time and monthly recurring plans
 - customer requests saved to Supabase
 - email notifications for new service requests, contact messages, successful payments, and failed recurring payments
+- branded customer confirmations for service requests, contact messages, successful payments, and payment failures
+- secure email-delivered Stripe customer portal access for invoices, payment methods, and subscription cancellation
+- privacy, terms, cancellation, and refund policy pages linked before checkout
 - public contact form with a honeypot and minimum-fill-time spam checks
 - public Black & Blue Trash Bin Runner application and referral-interest form
 - protected admin login and request-management dashboard
@@ -76,3 +79,9 @@ Verify `trashgrab.app` in Resend, create a Resend API key, and set these private
 - `SUPABASE_SECRET_KEY` — a server-only Supabase secret key used to read the saved request and update payment state. The legacy `SUPABASE_SERVICE_ROLE_KEY` is also supported.
 
 After changing environment variables, redeploy the Netlify site. New booking requests and contact messages will be emailed to the recipient. Stripe payment and failed-payment emails require the webhook configuration above. Email-provider failures do not discard a saved service request or reverse a successful payment.
+
+## Stripe customer portal
+
+The `/account.html` page accepts a customer's Stripe billing email and sends a temporary portal-session URL only to that address. This avoids exposing billing access through the public form and gives the same generic response whether or not an account exists.
+
+In both Stripe sandbox and live mode, save a Customer Portal configuration with payment-method updates, invoice history, and subscription cancellation enabled. Set the portal's Terms URL to `https://trashgrab.app/terms.html` and its default return URL to `https://trashgrab.app/account.html`. New one-time Checkouts also create a Stripe Customer so their receipts can be available in the portal.

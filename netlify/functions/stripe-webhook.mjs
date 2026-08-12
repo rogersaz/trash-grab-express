@@ -1,4 +1,4 @@
-import { money, sendNotification } from './_email.mjs';
+import { emailLayout, money, sendNotification } from './_email.mjs';
 import { updatePaymentStatus } from './_supabase-server.mjs';
 
 function json(status, body) {
@@ -83,7 +83,7 @@ export default async function handler(request) {
   if (!service) return json(500, { error: 'Payment record could not be updated.' });
 
   const paid = successEvent;
-  await sendNotification({
+  await Promise.all([sendNotification({
     subject: paid
       ? `PAID — ${service.first_name} ${service.last_name} — ${money(details.amount, details.currency)}`
       : `PAYMENT FAILED — ${service.first_name} ${service.last_name}`,
@@ -102,7 +102,35 @@ export default async function handler(request) {
       '',
       'Open admin: https://trashgrab.app/admin.html'
     ].join('\n')
-  });
+  }), sendNotification({
+    to: service.email,
+    subject: paid
+      ? `Payment received — ${money(details.amount, details.currency)}`
+      : 'Action needed — Trash Grab Express payment failed',
+    idempotencyKey: `stripe-customer-${event.id}`,
+    text: [
+      `Hi ${service.first_name},`,
+      '',
+      paid ? 'Your Trash Grab Express payment was received.' : 'We could not process your Trash Grab Express payment.',
+      `Amount: ${money(details.amount, details.currency)}`,
+      `Plan: ${service.plan_frequency}`,
+      '',
+      paid ? 'Manage billing: https://trashgrab.app/account.html' : 'Please update your payment method: https://trashgrab.app/account.html'
+    ].join('\n'),
+    html: emailLayout({
+      heading: paid ? 'Payment received.' : 'Your payment needs attention.',
+      intro: paid
+        ? `Thanks, ${service.first_name}. Your Trash Grab Express payment was successful.`
+        : `Hi ${service.first_name}. We could not process your latest payment. Use the secure billing portal to update your payment method.`,
+      details: [
+        ['Amount', money(details.amount, details.currency)],
+        ['Plan', service.plan_frequency],
+        ['Status', paid ? 'PAID' : 'UNPAID']
+      ],
+      ctaLabel: paid ? 'View receipts and billing' : 'Update payment method',
+      ctaUrl: 'https://trashgrab.app/account.html'
+    })
+  })]);
 
   return json(200, { received: true });
 }

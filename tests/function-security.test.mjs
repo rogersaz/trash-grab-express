@@ -8,6 +8,8 @@ import createCheckoutHandler, { checkoutPlan } from '../netlify/functions/create
 import contactHandler from '../netlify/functions/contact.mjs';
 import notifyServiceRequestHandler from '../netlify/functions/notify-service-request.mjs';
 import stripeWebhookHandler, { validStripeSignature } from '../netlify/functions/stripe-webhook.mjs';
+import billingPortalHandler from '../netlify/functions/request-billing-portal.mjs';
+import { emailLayout } from '../netlify/functions/_email.mjs';
 import { createHmac } from 'node:crypto';
 
 test('map functions reject unauthenticated requests', async () => {
@@ -109,4 +111,50 @@ test('Stripe webhook rejects unsigned requests', async () => {
     if (previousSecret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
     else process.env.STRIPE_WEBHOOK_SECRET = previousSecret;
   }
+});
+
+test('billing portal requests enforce methods and body limits', async () => {
+  const methodResponse = await billingPortalHandler(new Request('https://trashgrab.app/.netlify/functions/request-billing-portal'));
+  const sizeResponse = await billingPortalHandler(new Request('https://trashgrab.app/.netlify/functions/request-billing-portal', {
+    method: 'POST',
+    headers: { 'content-length': '2049' }
+  }));
+
+  assert.equal(methodResponse.status, 405);
+  assert.equal(sizeResponse.status, 413);
+});
+
+test('billing portal rejects automated or too-fast submissions before calling Stripe', async () => {
+  const previousStripe = process.env.STRIPE_SECRET_KEY;
+  const previousResend = process.env.RESEND_API_KEY;
+  process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+  process.env.RESEND_API_KEY = 're_test_placeholder';
+  try {
+    const response = await billingPortalHandler(new Request('https://trashgrab.app/.netlify/functions/request-billing-portal', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'customer@example.com', startedAt: Date.now() })
+    }));
+    assert.equal(response.status, 422);
+  } finally {
+    if (previousStripe === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previousStripe;
+    if (previousResend === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previousResend;
+  }
+});
+
+test('customer email layout escapes customer-controlled content', () => {
+  const html = emailLayout({
+    heading: '<script>alert(1)</script>',
+    intro: 'Safe & sound',
+    details: [['Plan', '<img src=x>']],
+    ctaLabel: 'Open',
+    ctaUrl: 'https://trashgrab.app/account.html'
+  });
+
+  assert.doesNotMatch(html, /<script>/);
+  assert.doesNotMatch(html, /<img src=x>/);
+  assert.match(html, /&lt;script&gt;/);
+  assert.match(html, /Safe &amp; sound/);
 });
