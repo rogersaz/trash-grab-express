@@ -50,7 +50,7 @@ export default async function handler(request) {
 
   const body = await request.json().catch(() => null);
   const plan = body && checkoutPlan(body);
-  if (!body || !validEmail(body.email) || !plan || !/^[0-9a-f-]{36}$/i.test(body.checkoutToken || '')) {
+  if (!body || !validEmail(body.email) || !plan || !/^[0-9a-f-]{36}$/i.test(body.checkoutToken || '') || !/^[0-9a-f-]{36}$/i.test(body.requestId || '')) {
     return json(422, { error: plan ? 'Please check your booking details.' : 'Online payment for this plan requires a custom quote.' });
   }
 
@@ -69,9 +69,15 @@ export default async function handler(request) {
     'line_items[0][price_data][product_data][description]': `${plan.bins} ${plan.bins === 1 ? 'bin' : 'bins'}${plan.returns ? ' with post-collection return' : ''}`,
     'metadata[plan_frequency]': plan.frequency,
     'metadata[bin_count]': String(plan.bins),
-    'metadata[return_service]': String(plan.returns)
+    'metadata[return_service]': String(plan.returns),
+    'metadata[request_id]': body.requestId
   });
-  if (plan.recurring) params.set('line_items[0][price_data][recurring][interval]', 'month');
+  if (plan.recurring) {
+    params.set('line_items[0][price_data][recurring][interval]', 'month');
+    params.set('subscription_data[metadata][request_id]', body.requestId);
+  } else {
+    params.set('payment_intent_data[metadata][request_id]', body.requestId);
+  }
 
   const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',

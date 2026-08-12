@@ -10,6 +10,8 @@ A responsive service website with a Supabase-backed customer-request system and 
 - instant service-price estimator
 - Stripe-hosted Book & Pay checkout for one-time and monthly recurring plans
 - customer requests saved to Supabase
+- email notifications for new service requests, contact messages, successful payments, and failed recurring payments
+- public contact form with a honeypot and minimum-fill-time spam checks
 - public Black & Blue Trash Bin Runner application and referral-interest form
 - protected admin login and request-management dashboard
 - admin-only runner application review and approval queue
@@ -57,3 +59,20 @@ If the three service-account settings are not present or the advanced optimizer 
 ## Stripe payment configuration
 
 Set `STRIPE_SECRET_KEY` as a private Netlify environment variable to activate Book & Pay. The key is used only by the server-side Checkout function and must never be added to this repository or browser JavaScript. Recurring weekly and every-other-week service plans are billed monthly; one-time service uses a single payment. Plans with four or more bins continue through the saved custom-quote workflow instead of being charged automatically.
+
+To receive verified payment notifications and automatically update the admin dashboard's PAID/UNPAID status, add a Stripe webhook endpoint at:
+
+`https://trashgrab.app/.netlify/functions/stripe-webhook`
+
+Subscribe it to `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `invoice.paid`, and `invoice.payment_failed`. Save the endpoint signing secret in Netlify as `STRIPE_WEBHOOK_SECRET`. Payment emails are triggered only after a valid Stripe signature is verified; the checkout success page is not trusted as proof of payment.
+
+## Resend email configuration
+
+Verify `trashgrab.app` in Resend, create a Resend API key, and set these private Netlify environment variables:
+
+- `RESEND_API_KEY` — the Resend API key; never expose it in browser JavaScript.
+- `RESEND_FROM_EMAIL` — optional sender, such as `Trash Grab Express <notifications@trashgrab.app>`.
+- `RESEND_TO_EMAIL` — optional recipient override; defaults to `trashbingrab@gmail.com`.
+- `SUPABASE_SECRET_KEY` — a server-only Supabase secret key used to read the saved request and update payment state. The legacy `SUPABASE_SERVICE_ROLE_KEY` is also supported.
+
+After changing environment variables, redeploy the Netlify site. New booking requests and contact messages will be emailed to the recipient. Stripe payment and failed-payment emails require the webhook configuration above. Email-provider failures do not discard a saved service request or reverse a successful payment.
